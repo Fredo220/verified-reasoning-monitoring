@@ -21,14 +21,15 @@ registered 32-task by four-candidate development smoke.
   monitor, budget helpers, and paired-statistics primitives exist.
 - The package-backed Colab notebook now requires an exact project commit, reads
   `HF_TOKEN` only from Colab Secrets, provisions the verifier before Gemma, and
-  runs the smoke through the package CLI.
+  runs the registered real verifier suite before the smoke. Its cache-mutation
+  test restores the disposable cache in a `finally` path.
 - The verifier contract and its exact runtime, provenance, isolation, status,
   and acceptance requirements are documented in `docs/lean_backend.md`.
 
 Current local verification:
 
 ```text
-159 passed, 7 skipped
+160 passed, 7 skipped
 ```
 
 The seven skips are the six real Linux Comparator/Landrun security cases plus

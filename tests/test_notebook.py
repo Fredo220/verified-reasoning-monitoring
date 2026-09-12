@@ -39,3 +39,25 @@ def test_notebook_provisions_and_preflights_verifier_before_smoke():
     preflight = source.index("'vrm', 'preflight'")
     smoke = source.index("'vrm', 'smoke'")
     assert provision < preflight < smoke
+
+
+def test_notebook_runs_registered_real_verifier_suite_before_smoke():
+    source = _source()
+    real_suite = source.index("VRM_RUN_REAL_LEAN_TESTS")
+    smoke = source.index("'vrm', 'smoke'")
+    assert real_suite < smoke
+    for case_name in (
+        "valid",
+        "invalid",
+        "self_reference",
+        "sorry",
+        "unauthorized_axiom",
+        "sandbox_escape",
+        "cache_mutation",
+    ):
+        assert case_name in source
+    assert "native_decide" in source
+    assert "--junitxml" in source
+    test_run = source.index("real_tests = subprocess.run")
+    restore = source.index("shutil.rmtree(CACHE)")
+    assert "finally:" in source[test_run:restore]

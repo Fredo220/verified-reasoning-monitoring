@@ -139,7 +139,10 @@ The notebook provisions dependencies and then calls:
 vrm preflight --execution-mode native ...
 ```
 
-Only a `ready` result permits later verification. The package-backed smoke uses
-the same configured backend; notebook cells do not implement an alternative
-judge. Temporary Colab unavailability is an operational blocker, not evidence
-for or against scientific feasibility.
+Only a `ready` result permits later verification. The notebook then constructs
+the seven registered cases from the frozen development artifacts, runs the
+opt-in real suite, and restores the deliberately mutated disposable cache
+before loading Gemma. The package-backed smoke uses the same configured backend;
+notebook cells do not implement an alternative judge. Temporary Colab
+unavailability is an operational blocker, not evidence for or against
+scientific feasibility.
