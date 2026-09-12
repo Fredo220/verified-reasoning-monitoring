@@ -61,3 +61,12 @@ def test_notebook_runs_registered_real_verifier_suite_before_smoke():
     test_run = source.index("real_tests = subprocess.run")
     restore = source.index("shutil.rmtree(CACHE)")
     assert "finally:" in source[test_run:restore]
+
+
+def test_notebook_runs_one_in_process_smoke_after_real_verifier_suite():
+    source = _source()
+    real_suite = source.index("VRM_RUN_REAL_LEAN_TESTS")
+    smoke = source.index("'vrm', 'smoke'")
+    assert real_suite < smoke
+    assert source.count("'vrm', 'smoke'") == 1
+    assert "'vrm', 'probe-candidate'" not in source

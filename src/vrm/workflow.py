@@ -262,6 +262,26 @@ def run_development_smoke(public_tasks: Sequence[Mapping],
                           verifier_rows: Sequence[Mapping], runner, verifier,
                           output_dir, *, request: Mapping) -> dict:
     """Run or resume the registered 32-by-4 development feasibility smoke."""
+    return _run_development_collection(
+        public_tasks, verifier_rows, runner, verifier, output_dir,
+        request=request, candidate_limit=None,
+    )
+
+
+def run_single_candidate_probe(public_tasks: Sequence[Mapping],
+                               verifier_rows: Sequence[Mapping], runner, verifier,
+                               output_dir, *, request: Mapping) -> dict:
+    """Exercise one real end-to-end candidate without evaluating the smoke gate."""
+    return _run_development_collection(
+        public_tasks, verifier_rows, runner, verifier, output_dir,
+        request=request, candidate_limit=1,
+    )
+
+
+def _run_development_collection(public_tasks: Sequence[Mapping],
+                                verifier_rows: Sequence[Mapping], runner, verifier,
+                                output_dir, *, request: Mapping,
+                                candidate_limit: int | None) -> dict:
     population = _validate_population(public_tasks, verifier_rows)
     if not isinstance(request, Mapping):
         raise ValueError("smoke request must be a mapping")
@@ -328,11 +348,16 @@ def run_development_smoke(public_tasks: Sequence[Mapping],
             if existing is not None:
                 payloads.append(existing)
                 charged += float(existing["charged_elapsed_s"])
+                if candidate_limit is not None and len(payloads) >= candidate_limit:
+                    return _finish_probe(output, "completed", payloads, charged,
+                                         budget_s, failed_attempts)
                 continue
             remaining = budget_s - charged
             if remaining <= 0:
-                return _finish(output, "budget_exhausted", payloads, charged, budget_s,
-                               failed_attempts)
+                return _finish_collection(
+                    output, "budget_exhausted", payloads, charged, budget_s,
+                    failed_attempts, candidate_limit,
+                )
             candidate = runner.generate(public, seed, remaining, capture=True)
             if not isinstance(candidate, Mapping):
                 raise ValueError("runner returned no candidate mapping")
@@ -340,12 +365,18 @@ def run_development_smoke(public_tasks: Sequence[Mapping],
             if not math.isfinite(generation_elapsed) or generation_elapsed < 0:
                 raise ValueError("candidate elapsed time must be finite and nonnegative")
             if candidate.get("deadline_exceeded"):
-                return _finish(output, "budget_exhausted", payloads,
-                               charged + generation_elapsed, budget_s, failed_attempts)
+                return _finish_collection(
+                    output, "budget_exhausted", payloads,
+                    charged + generation_elapsed, budget_s, failed_attempts,
+                    candidate_limit,
+                )
             verification_remaining = budget_s - charged - generation_elapsed
             if verification_remaining <= 0:
-                return _finish(output, "budget_exhausted", payloads,
-                               charged + generation_elapsed, budget_s, failed_attempts)
+                return _finish_collection(
+                    output, "budget_exhausted", payloads,
+                    charged + generation_elapsed, budget_s, failed_attempts,
+                    candidate_limit,
+                )
             verification = verifier.verify(
                 verification_task, candidate.get("text", ""),
                 timeout_s=min(5.0, verification_remaining),
@@ -359,13 +390,36 @@ def run_development_smoke(public_tasks: Sequence[Mapping],
                 )
                 charged += float(failure["charged_elapsed_s"])
                 failed_attempts += 1
-                return _finish(output, "infrastructure_error", payloads, charged,
-                               budget_s, failed_attempts)
+                return _finish_collection(
+                    output, "infrastructure_error", payloads, charged, budget_s,
+                    failed_attempts, candidate_limit,
+                )
             payload = _write_candidate(path, candidate_request, candidate, verification)
             payloads.append(payload)
             charged += float(payload["charged_elapsed_s"])
+            if candidate_limit is not None and len(payloads) >= candidate_limit:
+                return _finish_probe(output, "completed", payloads, charged,
+                                     budget_s, failed_attempts)
 
     return _finish(output, "completed", payloads, charged, budget_s, failed_attempts)
+
+
+def _finish_collection(output: Path, status: str, payloads: Sequence[Mapping],
+                       charged: float, budget_s: float, failed_attempts: int,
+                       candidate_limit: int | None) -> dict:
+    if candidate_limit is None:
+        return _finish(output, status, payloads, charged, budget_s, failed_attempts)
+    return _finish_probe(output, status, payloads, charged, budget_s, failed_attempts)
+
+
+def _finish_probe(output: Path, status: str, payloads: Sequence[Mapping],
+                  charged: float, budget_s: float, failed_attempts: int = 0) -> dict:
+    if status == "completed":
+        status = "integration_probe_completed"
+    result = _summary(status, payloads, charged, budget_s, failed_attempts)
+    result["scientific_gate_evaluated"] = False
+    _write_summary_atomic(output / "integration_probe.json", result)
+    return result
 
 
 def _finish(output: Path, status: str, payloads: Sequence[Mapping],

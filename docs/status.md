@@ -21,15 +21,18 @@ registered 32-task by four-candidate development smoke.
   monitor, budget helpers, and paired-statistics primitives exist.
 - The package-backed Colab notebook now requires an exact project commit, reads
   `HF_TOKEN` only from Colab Secrets, provisions the verifier before Gemma, and
-  runs the registered real verifier suite before the smoke. Its cache-mutation
-  test restores the disposable cache in a `finally` path.
+  runs the registered real verifier suite before the smoke. The smoke uses one
+  loaded model process: it first persists one complete integration candidate
+  without evaluating the scientific gate, then resumes the same immutable run
+  through all 128 candidates. Its cache-mutation test restores the disposable
+  cache in a `finally` path.
 - The verifier contract and its exact runtime, provenance, isolation, status,
   and acceptance requirements are documented in `docs/lean_backend.md`.
 
 Current local verification:
 
 ```text
-160 passed, 7 skipped
+165 passed, 7 skipped
 ```
 
 The seven skips are the six real Linux Comparator/Landrun security cases plus
@@ -57,9 +60,12 @@ That is an operational limitation and is not a scientific feasibility result.
 1. Run the notebook's verifier-only cells in a blank Linux runtime.
 2. Pass preflight plus the seven real adversarial tests, including TCP and Unix
    socket isolation.
-3. Only then load Gemma and run the 32 by 4 development smoke.
+3. Only then run the single-process Gemma smoke: require the first complete
+   candidate integration receipt before continuing through the 32 by 4 run.
 4. Continue to H1-H3 only if the frozen feasibility thresholds pass.
 
-The repository currently has no commit. Before a remote Colab run, create one
-reviewed immutable commit and place its exact hash in `PROJECT_GIT_REV`. Do not
-use a branch name or a mutable tag for experiment identity.
+The local branch has immutable baseline commits, but the execution revision is
+not yet available from a configured remote. Before a remote Colab run, publish
+the reviewed execution commit only with explicit authorization and place its
+exact hash in `PROJECT_GIT_REV`. Do not use a branch name or mutable tag for
+experiment identity.

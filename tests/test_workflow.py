@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from vrm.workflow import run_development_smoke
+from vrm.workflow import run_development_smoke, run_single_candidate_probe
 from vrm import lean
 
 
@@ -166,6 +166,51 @@ def test_interruption_resumes_only_missing_candidates(tmp_path):
     run_development_smoke(public, private, runner, Verifier(), tmp_path,
                           request=request())
     assert runner.calls == 0
+
+
+def test_single_candidate_probe_resumes_into_registered_smoke(tmp_path):
+    public, private = tasks()
+    runner, verifier = Runner(), Verifier()
+
+    probe = run_single_candidate_probe(
+        public, private, runner, verifier, tmp_path, request=request())
+
+    assert probe["status"] == "integration_probe_completed"
+    assert probe["completed_candidates"] == 1
+    assert probe["feasibility"] is None
+    assert probe["scientific_gate_evaluated"] is False
+    assert runner.calls == verifier.calls == 1
+    assert not (tmp_path / "summary.json").exists()
+    assert json.loads((tmp_path / "integration_probe.json").read_text()) == probe
+
+    first_receipt = (
+        tmp_path / "candidates" / "dev-00-000" / "receipt.json"
+    ).read_bytes()
+    runner, verifier = Runner(), Verifier()
+    completed = run_development_smoke(
+        public, private, runner, verifier, tmp_path, request=request())
+
+    assert completed["status"] == "completed"
+    assert completed["completed_candidates"] == 128
+    assert completed["feasibility"]["passed"] is True
+    assert runner.calls == verifier.calls == 127
+    assert (
+        tmp_path / "candidates" / "dev-00-000" / "receipt.json"
+    ).read_bytes() == first_receipt
+
+
+def test_single_candidate_probe_is_idempotent(tmp_path):
+    public, private = tasks()
+    run_single_candidate_probe(
+        public, private, Runner(), Verifier(), tmp_path, request=request())
+
+    runner, verifier = Runner(), Verifier()
+    result = run_single_candidate_probe(
+        public, private, runner, verifier, tmp_path, request=request())
+
+    assert result["status"] == "integration_probe_completed"
+    assert result["completed_candidates"] == 1
+    assert runner.calls == verifier.calls == 0
 
 
 def test_corrupt_resume_artifact_fails_closed(tmp_path):
