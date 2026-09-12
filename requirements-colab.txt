@@ -1,0 +1,11 @@
+accelerate==1.14.0
+huggingface-hub==1.30.0
+matplotlib==3.11.1
+numpy==2.5.3
+pytest==9.1.1
+safetensors==0.8.0
+scikit-learn==1.9.0
+tokenizers==0.23.2
+torch==2.14.0
+transformers==5.16.1
+lean-dojo @ git+https://github.com/lean-dojo/LeanDojo.git@3bbc4c02fb8a058b282c8d3982a02d6563f3b08a

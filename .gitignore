@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+artifacts/
+data/
+**/verifier_metadata.jsonl
+.env
+.env.*
+!.env.example
+*.safetensors
+*.pt
+*.npz
+.ipynb_checkpoints/

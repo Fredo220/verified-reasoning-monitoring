@@ -1,0 +1,45 @@
+{
+  "study_id": "vrm-v1",
+  "model_id": "google/gemma-2-2b-it",
+  "model_revision": "299a8560bedf22ed1c72a8a11e7dce4a7f9f51f8",
+  "tokenizer_revision": "299a8560bedf22ed1c72a8a11e7dce4a7f9f51f8",
+  "dtype": "float16",
+  "max_input_tokens": 512,
+  "max_new_tokens": 64,
+  "temperature": 0.7,
+  "top_p": 0.95,
+  "task_budget_s": 30.0,
+  "max_candidates": 8,
+  "gpu_budget_s": 43200,
+  "smoke_gpu_budget_s": 3600,
+  "benchmark": {
+    "name": "LeanDojo Benchmark 4 v3",
+    "doi": "10.5281/zenodo.18815372",
+    "archive_md5": "b58af89599d5bbc792abc3744e5d37d9",
+    "mathlib_repo": "https://github.com/leanprover-community/mathlib4",
+    "mathlib_commit": "1bc7728a050fc18ca2683f614c531cd7050ff063",
+    "leandojo_version": "4.20.0"
+  },
+  "verifier": {
+    "lean_version": "v4.29.0-rc2",
+    "comparator_repo": "https://github.com/leanprover/comparator",
+    "comparator_commit": "3090445149fbaba51d8177df4eb2121573788341",
+    "landrun_repo": "https://github.com/Zouuup/landrun",
+    "landrun_commit": "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4",
+    "lean4export_commit": "048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d",
+    "lean4checker_commit": "b7398199245524275543dec6113229c9bb4902e5",
+    "allowed_axioms": ["propext", "Quot.sound", "Classical.choice"]
+  },
+  "data": {
+    "full_sizes": {"dev": 32, "train": 384, "val": 64, "id_test": 80, "ood_test": 40},
+    "reduced_sizes": {"dev": 32, "train": 192, "val": 32, "id_test": 40, "ood_test": 20},
+    "max_recorded_tactics": 6,
+    "max_reference_tokens": 64
+  },
+  "monitor": {
+    "seeds": [11, 22, 33],
+    "regularization_C": [0.01, 0.1, 1.0, 10.0],
+    "max_epochs": 10,
+    "early_stopping_patience": 2
+  }
+}

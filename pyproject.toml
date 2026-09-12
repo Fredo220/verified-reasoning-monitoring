@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "verified-reasoning-monitoring"
+version = "0.1.0"
+description = "Budget-matched, externally verified reasoning-monitor research"
+requires-python = ">=3.11,<3.13"
+dependencies = ["numpy", "scikit-learn", "torch", "transformers", "accelerate", "matplotlib"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+vrm = "vrm.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
