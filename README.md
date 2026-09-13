@@ -1,6 +1,6 @@
 # Verified Reasoning Monitoring
 
-> "What if only a machine could defeat another machine?"
+> "What if only a machine can defeat another machine?"
 >
 > Alan Turing, as portrayed in *The Imitation Game* (2014)
 
@@ -8,7 +8,7 @@ The line is fictionalized, but the question behind it has become increasingly re
 
 This project asks a narrower, testable version of that question:
 
-**Can a machine help us monitor another machine, and can that monitoring produce more externally verified solutions within the same compute budget?**
+**Can a machine help us monitor another machine, and can that monitoring produce more externally verified solutions within the same end-to-end time budget?**
 
 Research is in progress. No results from this study are available yet.
 
@@ -36,7 +36,7 @@ The predicted behavioral effect was not supported. However, the model's internal
 
 This raised a more useful question: even when internal information does not appear reliably in a model's behavior, can it still help us make better decisions?
 
-During that work, I encountered Anthropic's [Constitutional Classifiers research](https://arxiv.org/abs/2501.18837) and [Constitutional Classifiers++](https://arxiv.org/abs/2601.04603). These systems use inexpensive classifiers, including classifiers that read internal activations, to identify suspicious exchanges before applying more expensive safeguards.
+During that work, I encountered Anthropic's [Constitutional Classifiers research](https://arxiv.org/abs/2501.18837), which established a defense based on input and output classifiers. Its follow-up, [Constitutional Classifiers++](https://arxiv.org/abs/2601.04603), adds efficient linear probes over internal activations and combines them with external classifiers in a two-stage cascade.
 
 This project transfers that general monitoring principle to a different, externally verifiable setting. Instead of detecting potentially harmful conversations, the monitor ranks mathematical proof attempts. Instead of a safety policy determining the label, Lean determines whether the proof is formally valid.
 
@@ -65,7 +65,7 @@ The third question is the primary endpoint. Strong prediction without improved v
 ## The experiment
 
 1. **Generate attempts.** Frozen Gemma 2 proposes short Lean proofs.
-2. **Verify training examples.** Lean labels complete candidates as valid or invalid.
+2. **Verify training examples.** Lean checks each complete candidate. Invalid proofs, timeouts and infrastructure failures are recorded separately.
 3. **Train small monitors.** The monitors learn from selected activation states without changing Gemma.
 4. **Freeze the selection.** Monitor and baseline choices are made on validation data before the protected test.
 5. **Test on new problems.** The selected systems rank or directly check newly generated candidates.
@@ -83,7 +83,7 @@ The monitor may see the problem, a completed candidate and selected internal act
 
 ## What is being compared
 
-The internal methods include a regularized static activation probe, a Motion-only monitor and the full [Three-Reader method](https://arxiv.org/abs/2608.05660), which models motion, region and direction in a residual-stream trajectory.
+The planned internal methods include a regularized static activation probe, a Motion-only monitor and a Gemma adaptation of the full [Three-Reader architecture](https://arxiv.org/abs/2608.05660), which models motion, region and direction in a residual-stream trajectory. The adaptation will be described as full only if its fidelity to those three components is documented before protected evaluation.
 
 They are compared against:
 
