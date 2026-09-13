@@ -62,11 +62,11 @@ A positive result would show that validity-related information is decodable from
 
 ### H2: Dynamics
 
-Does the way activations change across layers add information beyond a static snapshot?
+Does explicitly modeling activation trajectories improve prediction beyond static multi-layer probes?
 
 We compare static probes and a Motion-only monitor with a planned Gemma adaptation of the full [Three-Reader architecture](https://arxiv.org/abs/2608.05660). Three-Reader combines information about motion, region and direction in the residual-stream trajectory. The adaptation will be described as full only if its fidelity to all three components is documented before protected evaluation.
 
-A positive result would suggest that the development of the internal representation matters, not only its final location.
+A positive result would show additional predictive value from modeling the trajectory. It would not establish a causal role for that trajectory in producing a valid proof.
 
 ### H3: Practical utility
 
@@ -86,7 +86,7 @@ This is the main result. Strong prediction without an improvement in verified so
    Lean checks each completed candidate. Invalid proofs, infrastructure failures and timeouts are recorded separately.
 
 3. **Train small monitors.**
-   The monitors receive the problem, the completed candidate and selected internal activations. They never receive Lean output, reference proofs or information from later attempts.
+   Lean verdicts provide the training labels. At prediction time, monitors receive only the problem, the completed candidate and selected internal activations. Lean output, reference proofs and information from later attempts are never used as input features.
 
 4. **Compare methods.**
    Internal monitors are compared with token likelihood, text features and direct checking.
@@ -99,6 +99,8 @@ This is the main result. Strong prediction without an improvement in verified so
 
 7. **Count externally verified solutions.**
    The independent unit is the proof problem, not an activation, token or individual candidate.
+
+Label-shuffle controls, length controls and component ablations test whether the monitors rely on superficial patterns and whether each component adds predictive value. Transfer tests assess whether any gains hold on new problems.
 
 ~~~mermaid
 flowchart LR
@@ -134,11 +136,11 @@ Prediction alone does not explain what the monitor has learned. It could rely on
 
 Circuit tracing is therefore a follow-up, not a substitute for the main experiment.
 
-If an internal monitor performs usefully on unseen problems, Anthropic's [open-source circuit-tracing tools](https://www.anthropic.com/research/open-source-circuit-tracing) can be applied offline to matched valid, invalid and difficult examples from the training and validation sets.
+If an internal monitor performs usefully on unseen problems, we would first test whether Anthropic's [open-source circuit-tracing tools](https://www.anthropic.com/research/open-source-circuit-tracing) can explain features associated with its score. This requires a documented adaptation to the monitor's target. We would use matched valid, invalid and difficult examples from the training and validation sets, then test the resulting hypotheses through interventions.
 
 The follow-up would ask:
 
-1. Which internal feature paths influence the monitor?
+1. Which internal features are associated with the monitor's score, and can their contributions be traced?
 2. Do those paths correspond to proof-relevant computation?
 3. Do they survive controls for length and formatting?
 4. Does perturbing them in the original Gemma model produce the predicted effect?
