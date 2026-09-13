@@ -1,3 +1,4 @@
+import ast
 import json
 import re
 from pathlib import Path
@@ -15,6 +16,15 @@ def _source() -> str:
     )
 
 
+def _code_cells() -> list[str]:
+    notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
+    return [
+        "".join(cell.get("source", []))
+        for cell in notebook["cells"]
+        if cell["cell_type"] == "code"
+    ]
+
+
 def test_notebook_requires_an_immutable_project_revision():
     source = _source()
     assert "PROJECT_GIT_URL" in source
@@ -28,7 +38,8 @@ def test_notebook_requires_an_immutable_project_revision():
 def test_notebook_reads_hugging_face_token_from_colab_secrets_only():
     source = _source()
     assert 'userdata.get("HF_TOKEN")' in source
-    assert "env=study_env" in source
+    assert "study_env = dict(os.environ)" in source
+    assert "'--preserve-environment'" in source
     assert "exported = [" not in source
     assert not re.search(r"hf_[A-Za-z0-9]{20,}", source)
 
@@ -36,19 +47,45 @@ def test_notebook_reads_hugging_face_token_from_colab_secrets_only():
 def test_notebook_provisions_and_preflights_verifier_before_smoke():
     source = _source()
     provision = source.index("provision-verifier")
-    preflight = source.index("'vrm', 'preflight'")
-    smoke = source.index("'vrm', 'smoke'")
+    preflight = source.index("'preflight', '--execution-mode'")
+    smoke = source.index("'smoke', '--config'")
     assert provision < preflight < smoke
 
 
 def test_notebook_runs_the_study_under_python_312_when_colab_kernel_is_newer():
     source = _source()
-    assert "study_python = Path('/usr/bin/python3.12')" in source
-    assert "study_venv = RUNTIME / 'python3.12'" in source
-    assert "'-m', 'venv', str(study_venv)" in source
-    assert "env['PATH'] = f\"{study_venv / 'bin'}:" in source
-    assert "str(study_venv / 'bin' / 'python'), '-m', 'pip'" in source
-    assert "sys.path.insert(0, str(PROJECT / 'src'))" in source
+    assert "STUDY_BASE_PYTHON = Path('/usr/bin/python3.12')" in source
+    assert "STUDY_VENV = RUNTIME / 'python3.12'" in source
+    assert "STUDY_PYTHON = STUDY_VENV / 'bin' / 'python'" in source
+    assert "'-m', 'venv', str(STUDY_VENV)" in source
+    assert "env['PATH'] = f\"{STUDY_VENV / 'bin'}:" in source
+    assert "str(STUDY_PYTHON), '-m', 'pip'" in source
+    assert "str(STUDY_PYTHON), '-I', '-m', 'vrm.cli'" in source
+    assert "str(STUDY_PYTHON), '-I', '-m', 'pytest'" in source
+    assert "study-python-runtime.json" in source
+    assert "pip_freeze" in source
+    assert "project checkout changed during provisioning" in source
+    assert "'vrm', 'preflight'" not in source
+    assert "'vrm', 'smoke'" not in source
+    assert "'python', '-m', 'pytest'" not in source
+
+
+def test_notebook_kernel_does_not_import_project_code_directly():
+    for source in _code_cells():
+        tree = ast.parse(source)
+        for node in tree.body:
+            if isinstance(node, ast.Import):
+                assert all(not alias.name.startswith("vrm") for alias in node.names)
+            if isinstance(node, ast.ImportFrom):
+                assert not (node.module or "").startswith("vrm")
+
+
+def test_notebook_runs_validation_and_cache_hashing_in_study_runtime():
+    source = _source()
+    assert "def study_json(" in source
+    assert "def study_cache_digest(" in source
+    assert "validate_prepared_artifacts" in source
+    assert "post_smoke_cache_sha256 = study_cache_digest(CACHE)" in source
 
 
 def test_notebook_uses_approved_runtime_amendment_and_official_mathlib_cache():
@@ -101,16 +138,16 @@ def test_notebook_labels_verifier_evidence_only_after_acceptance_checks():
 
 def test_notebook_rechecks_cache_after_smoke_before_accepting_summary():
     source = _source()
-    smoke = source.index("smoke = as_study_user")
+    smoke = source.index("smoke = run_vrm_as_study_user")
     summary = source.index("summary = json.loads", smoke)
-    assert "post_smoke_cache_sha256 = cache_digest(CACHE)" in source[smoke:summary]
+    assert "post_smoke_cache_sha256 = study_cache_digest(CACHE)" in source[smoke:summary]
     assert "assert post_smoke_cache_sha256 == CACHE_SHA256" in source[smoke:summary]
 
 
 def test_notebook_runs_registered_real_verifier_suite_before_smoke():
     source = _source()
     real_suite = source.index("VRM_RUN_REAL_LEAN_TESTS")
-    smoke = source.index("'vrm', 'smoke'")
+    smoke = source.index("'smoke', '--config'")
     assert real_suite < smoke
     for case_name in (
         "valid",
@@ -132,7 +169,7 @@ def test_notebook_runs_registered_real_verifier_suite_before_smoke():
 def test_notebook_runs_one_in_process_smoke_after_real_verifier_suite():
     source = _source()
     real_suite = source.index("VRM_RUN_REAL_LEAN_TESTS")
-    smoke = source.index("'vrm', 'smoke'")
+    smoke = source.index("'smoke', '--config'")
     assert real_suite < smoke
-    assert source.count("'vrm', 'smoke'") == 1
+    assert source.count("'smoke', '--config'") == 1
     assert "'vrm', 'probe-candidate'" not in source
