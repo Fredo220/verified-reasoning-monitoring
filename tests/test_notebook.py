@@ -41,6 +41,16 @@ def test_notebook_provisions_and_preflights_verifier_before_smoke():
     assert provision < preflight < smoke
 
 
+def test_notebook_runs_the_study_under_python_312_when_colab_kernel_is_newer():
+    source = _source()
+    assert "study_python = Path('/usr/bin/python3.12')" in source
+    assert "study_venv = RUNTIME / 'python3.12'" in source
+    assert "'-m', 'venv', str(study_venv)" in source
+    assert "env['PATH'] = f\"{study_venv / 'bin'}:" in source
+    assert "str(study_venv / 'bin' / 'python'), '-m', 'pip'" in source
+    assert "sys.path.insert(0, str(PROJECT / 'src'))" in source
+
+
 def test_notebook_uses_approved_runtime_amendment_and_official_mathlib_cache():
     source = _source()
     assert "v4.29.0-rc1" in source
