@@ -79,6 +79,24 @@ attempts. Its relevance to broader reliability and safety would need further
 testing. Lean checks the formal statement we give it, so the experiment cannot
 establish correctness for arbitrary natural-language answers.
 
+## Mechanistic follow-up
+
+Circuit tracing is a follow-up, not a substitute for the main result. If an
+internal monitor shows useful performance on unseen problems, Anthropic's
+[open-source circuit-tracing tools](https://www.anthropic.com/research/open-source-circuit-tracing)
+can be applied offline to matched valid, invalid and difficult examples from
+the training and validation sets. The goal would be to identify which feature
+paths the monitor relies on, test whether they reflect proof-relevant
+computation rather than shortcuts such as length or formatting, and distill
+robust findings into a small runtime monitor.
+
+Full attribution graphs would not run for every proof candidate. They are too
+expensive and capture only part of the original computation. Any graph-based
+hypothesis would therefore require a perturbation test in the original Gemma
+model and a fresh held-out evaluation. Circuit evidence could explain or
+improve a successful monitor, but it could not rescue a negative primary
+experiment.
+
 ## Current status
 
 The protocol and local implementation are being checked. There are no results
