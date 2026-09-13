@@ -6,8 +6,8 @@ import argparse
 import json
 from pathlib import Path
 
-from vrm.config import load_study_config
-from vrm.data import prepare
+from vrm.config import load_protocol_amendment, load_study_config
+from vrm.data import prepare, validate_prepared_artifacts
 from vrm.lean import LeanDojoBackend
 from vrm.runtime import HFRunner
 from vrm.workflow import run_development_smoke, run_single_candidate_probe
@@ -99,6 +99,8 @@ def main(argv: list[str] | None = None) -> int:
 
     config = load_study_config(args.config)
     prepared = Path(args.prepared_dir)
+    amendment = load_protocol_amendment(config["protocol_amendment"], args.config)
+    validate_prepared_artifacts(prepared, amendment)
     public = _read_jsonl(prepared / "dev.jsonl")
     private = [
         row for row in _read_jsonl(prepared / "verifier_metadata.jsonl")

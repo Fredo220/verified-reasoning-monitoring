@@ -1,7 +1,7 @@
 # Trusted Lean verifier backend
 
-**Status:** implemented and unit-tested locally; real Linux acceptance remains
-unverified.
+**Status:** implemented and unit-tested locally; the approved runtime correction
+has not yet completed native-Linux acceptance.
 
 This document describes the verifier used by the approved study. It records the
 implemented trust boundary and the evidence still required before any real
@@ -23,8 +23,8 @@ the worker returns the exact provenance receipt expected by the host.
 | Benchmark | LeanDojo Benchmark 4 v3, DOI `10.5281/zenodo.18815372` |
 | Mathlib | `https://github.com/leanprover-community/mathlib4` at `1bc7728a050fc18ca2683f614c531cd7050ff063` |
 | LeanDojo | version `4.20.0`, commit `3bbc4c02fb8a058b282c8d3982a02d6563f3b08a` |
-| Lean | `v4.29.0-rc2` |
-| Comparator | `3090445149fbaba51d8177df4eb2121573788341` |
+| Lean | `v4.29.0-rc1` |
+| Comparator | `ae061f79cdf7af458a26348177cfbd62da0123f6` |
 | Landrun | `811cfff51ceaf3d9843708aa6d22e9b84ccac8b4` |
 | lean4export | `048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d` |
 | Lean4Checker | `b7398199245524275543dec6113229c9bb4902e5` |
@@ -32,6 +32,14 @@ the worker returns the exact provenance receipt expected by the host.
 
 `configs/study.json` is the machine-readable authority. `src/vrm/lean.py`, the
 notebook, and this document must agree with it.
+
+The exact LeanDojo pretraced-cache object was unavailable from its documented
+official location. Before any model outcome was opened, the approved
+[runtime provenance amendment](runtime_provenance_amendment_2026-09-13.md)
+replaced only that unavailable runtime path with the same canonical Mathlib
+checkout and Mathlib's official Azure build cache. It also corrected the Lean
+and Comparator pins to the versions required by that checkout. Tasks, prompts,
+splits, private verifier data, hypotheses, endpoints, and gates did not change.
 
 ## Information boundary
 
@@ -65,10 +73,12 @@ Each verification creates an isolated Lean project with:
 - NanoDA disabled.
 
 Comparator and its lean4export/Lean4Checker dependencies are pinned and their
-built executables are hashed. A successful candidate is accepted only with an
-exact audit receipt binding the task, source, trace, cache, tools, runtime, and
-axiom policy. A missing, malformed, or mismatched receipt becomes
-`infrastructure_error`, never `valid`.
+built executables are hashed. For the native path, the directory containing the
+same hashed `lean4export` executable is prepended to `PATH` before Landrun starts
+Comparator; an unbound exporter path fails closed. A successful candidate is
+accepted only with an exact audit receipt binding the task, source, trace,
+cache, tools, runtime, and axiom policy. A missing, malformed, or mismatched
+receipt becomes `infrastructure_error`, never `valid`.
 
 ## Native Linux isolation
 
@@ -76,8 +86,8 @@ The Colab path uses native Linux under a dedicated non-root user. Preflight must
 confirm all of the following before model loading:
 
 1. Linux and non-root execution.
-2. A clean pinned Mathlib cache with the expected full digest and Lean
-   toolchain.
+2. A clean pinned Mathlib checkout populated from the official Mathlib Azure
+   build cache, with the expected full digest and Lean toolchain.
 3. A clean pinned Comparator checkout, dependency revisions, and executable
    hashes.
 4. The expected Landrun binary digest.
@@ -86,10 +96,19 @@ confirm all of the following before model loading:
 6. Landrun blocks both TCP and Unix-socket connections.
 7. The runtime Lean version matches the frozen toolchain.
 
-Candidate project setup runs under Landrun with `/` read-only and only the
-temporary audit tree writable/executable. The environment clears
-`GITHUB_ACCESS_TOKEN`. The generated proof is constrained by operating-system
-isolation and Comparator/kernel checks rather than by fragile text filtering.
+The trusted host stages each audit project from verified inputs. Comparator,
+Lake, and Lean then run under Landrun with `/` read-only and only the temporary
+audit tree writable/executable. The sandbox receives only the required runtime
+environment and an empty `GITHUB_ACCESS_TOKEN`. The generated proof is
+constrained by operating-system isolation and Comparator/kernel checks rather
+than by fragile text filtering.
+
+Each audit project receives a pre-resolved, offline Lake manifest. Immutable
+source files and build outputs are linked from the clean cache; only Lake's
+small per-project configuration metadata is copied into the writable audit
+tree. Candidate and diagnostic checks use separate trees. This prevents an
+audit from mutating the canonical cache while avoiding any network resolution
+during verification.
 
 The code also contains a Docker transport with a read-only filesystem,
 network disabled, dropped capabilities, resource limits, a non-root user, and a
@@ -124,12 +143,14 @@ runtime, set `VRM_RUN_REAL_LEAN_TESTS=1` and provide the audited
 4. `sorry` is rejected;
 5. an unauthorized axiom is rejected;
 6. a sandbox-escape attempt is rejected;
-7. mutation of a disposable cache copy makes preflight fail with
+7. mutation of a disposable Mathlib cache copy makes preflight fail with
    `cache_digest_mismatch`.
 
 The run must save structured outcomes, component versions and hashes, runtime
-identity, and elapsed times. Until all seven tests pass, the verifier is
-operationally unverified and the 32-by-4 Gemma smoke must not start.
+identity, and elapsed times. An incomplete or failed suite is exported as
+`verifier-failure`; only a complete successful suite is labeled
+`verifier-acceptance`. Until all seven tests pass, the verifier is operationally
+unverified and the 32-by-4 Gemma smoke must not start.
 
 ## Operational entry points
 
@@ -142,7 +163,8 @@ vrm preflight --execution-mode native ...
 Only a `ready` result permits later verification. The notebook then constructs
 the seven registered cases from the frozen development artifacts, runs the
 opt-in real suite, and restores the deliberately mutated disposable cache
-before loading Gemma. The package-backed smoke uses the same configured backend;
-notebook cells do not implement an alternative judge. Temporary Colab
-unavailability is an operational blocker, not evidence for or against
-scientific feasibility.
+as read-only before loading Gemma. The notebook checks the full cache digest
+again after the smoke and before accepting its summary. The package-backed
+smoke uses the same configured backend; notebook cells do not implement an
+alternative judge. Temporary Colab unavailability is an operational blocker,
+not evidence for or against scientific feasibility.

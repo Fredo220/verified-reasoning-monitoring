@@ -12,6 +12,11 @@
   "max_candidates": 8,
   "gpu_budget_s": 43200,
   "smoke_gpu_budget_s": 3600,
+  "protocol_amendment": {
+    "id": "vrm-v1-runtime-provenance-2026-09-13",
+    "record": "protocol/runtime_provenance_amendment_2026-09-13.json",
+    "record_sha256": "2ce51d3099d77642e7b9028941e9433771bbcf63de845fc7e40d6f19d45b5740"
+  },
   "benchmark": {
     "name": "LeanDojo Benchmark 4 v3",
     "doi": "10.5281/zenodo.18815372",
@@ -21,9 +26,9 @@
     "leandojo_version": "4.20.0"
   },
   "verifier": {
-    "lean_version": "v4.29.0-rc2",
+    "lean_version": "v4.29.0-rc1",
     "comparator_repo": "https://github.com/leanprover/comparator",
-    "comparator_commit": "3090445149fbaba51d8177df4eb2121573788341",
+    "comparator_commit": "ae061f79cdf7af458a26348177cfbd62da0123f6",
     "landrun_repo": "https://github.com/Zouuup/landrun",
     "landrun_commit": "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4",
     "lean4export_commit": "048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d",

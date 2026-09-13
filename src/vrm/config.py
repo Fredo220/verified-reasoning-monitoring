@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 import re
 from pathlib import Path
@@ -12,11 +13,12 @@ from vrm.core import digest
 
 _COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 _MD5 = re.compile(r"[0-9a-f]{32}\Z")
+_SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 _TOP_LEVEL = {
     "study_id", "model_id", "model_revision", "tokenizer_revision", "dtype",
     "max_input_tokens", "max_new_tokens", "temperature", "top_p",
     "task_budget_s", "max_candidates", "gpu_budget_s", "smoke_gpu_budget_s",
-    "benchmark", "verifier", "data", "monitor",
+    "protocol_amendment", "benchmark", "verifier", "data", "monitor",
 }
 _FULL_SIZES = {"dev": 32, "train": 384, "val": 64, "id_test": 80, "ood_test": 40}
 _REDUCED_SIZES = {"dev": 32, "train": 192, "val": 32, "id_test": 40, "ood_test": 20}
@@ -46,6 +48,27 @@ def _positive_number(value, name):
         raise ValueError(f"{name} must be a positive finite number")
 
 
+def load_protocol_amendment(amendment: dict, config_path) -> dict:
+    """Load the exact approved amendment referenced by the study config."""
+    record = Path(amendment["record"])
+    candidates = (Path.cwd() / record, Path(config_path).resolve().parent.parent / record)
+    record_path = next((candidate for candidate in candidates if candidate.is_file()), None)
+    if record_path is None:
+        raise ValueError("approved protocol amendment record is missing")
+    if hashlib.sha256(record_path.read_bytes()).hexdigest() != amendment["record_sha256"]:
+        raise ValueError("approved protocol amendment digest mismatch")
+    try:
+        document = json.loads(record_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"cannot load protocol amendment: {exc}") from exc
+    if (
+        document.get("amendment_id") != amendment["id"]
+        or document.get("status") != "approved_pre_outcome"
+    ):
+        raise ValueError("protocol amendment is not the approved record")
+    return document
+
+
 def load_study_config(path) -> dict:
     """Load and validate every study-defining pin before any outcome is opened."""
     try:
@@ -72,6 +95,17 @@ def load_study_config(path) -> dict:
                  "smoke_gpu_budget_s"):
         _positive_number(raw[name], name)
 
+    amendment = raw.get("protocol_amendment")
+    expected_amendment = {
+        "id": "vrm-v1-runtime-provenance-2026-09-13",
+        "record": "protocol/runtime_provenance_amendment_2026-09-13.json",
+        "record_sha256": "2ce51d3099d77642e7b9028941e9433771bbcf63de845fc7e40d6f19d45b5740",
+    }
+    _require_exact(amendment, expected_amendment, "protocol_amendment")
+    if not _SHA256.fullmatch(amendment["record_sha256"]):
+        raise ValueError("protocol amendment digest must be a lowercase SHA-256 digest")
+    load_protocol_amendment(amendment, path)
+
     benchmark = raw.get("benchmark")
     if not isinstance(benchmark, dict):
         raise ValueError("benchmark identity is missing")
@@ -89,9 +123,9 @@ def load_study_config(path) -> dict:
 
     verifier = raw.get("verifier")
     expected_verifier = {
-        "lean_version": "v4.29.0-rc2",
+        "lean_version": "v4.29.0-rc1",
         "comparator_repo": "https://github.com/leanprover/comparator",
-        "comparator_commit": "3090445149fbaba51d8177df4eb2121573788341",
+        "comparator_commit": "ae061f79cdf7af458a26348177cfbd62da0123f6",
         "landrun_repo": "https://github.com/Zouuup/landrun",
         "landrun_commit": "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4",
         "lean4export_commit": "048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d",

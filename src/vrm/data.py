@@ -24,7 +24,7 @@ UPSTREAM = {
     "repo_url": "https://github.com/leanprover-community/mathlib4",
     "repo_commit": "1bc7728a050fc18ca2683f614c531cd7050ff063",
     "leandojo_version": "4.20.0",
-    "lean_version": "v4.29.0-rc2",
+    "lean_version": "v4.29.0-rc1",
 }
 
 FULL_SIZES = {"dev": 32, "train": 384, "val": 64, "id_test": 80, "ood_test": 40}
@@ -381,6 +381,62 @@ def _md5_file(path: Path) -> str:
     except OSError as exc:
         raise PreparationError(f"cannot read archive_path: {exc}") from exc
     return digest.hexdigest()
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    try:
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError as exc:
+        raise PreparationError(f"cannot read prepared artifact: {exc}") from exc
+    return digest.hexdigest()
+
+
+def validate_prepared_artifacts(
+    prepared_dir: str | os.PathLike[str], amendment: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Verify the preserved corpus against its approved hash-bound correction."""
+    root = Path(prepared_dir)
+    if amendment.get("status") != "approved_pre_outcome":
+        raise PreparationError("runtime provenance amendment is not approved")
+    expected = amendment.get("prepared_artifacts")
+    evidence = amendment.get("evidence")
+    if not isinstance(expected, Mapping) or not isinstance(evidence, Mapping):
+        raise PreparationError("runtime provenance amendment lacks artifact hashes")
+
+    manifest_path = root / "manifest.json"
+    expected_manifest = evidence.get("prepared_manifest_sha256")
+    if not _is_hash(expected_manifest) or _sha256_file(manifest_path) != expected_manifest:
+        raise PreparationError("prepared manifest digest mismatch")
+    manifest = _read_json(manifest_path)
+    if not isinstance(manifest, Mapping) or manifest.get("status") != "ready":
+        raise PreparationError("prepared manifest is not ready")
+    declared = manifest.get("artifacts")
+    if not isinstance(declared, Mapping) or set(declared) != set(expected):
+        raise PreparationError("prepared artifact inventory mismatch")
+
+    for name, expected_digest in expected.items():
+        if not isinstance(name, str) or PurePosixPath(name).name != name:
+            raise PreparationError("prepared artifact name is invalid")
+        if not _is_hash(expected_digest):
+            raise PreparationError("prepared artifact digest is invalid")
+        artifact_path = root / name
+        declared_item = declared.get(name)
+        if not isinstance(declared_item, Mapping):
+            raise PreparationError("prepared artifact manifest entry is invalid")
+        if declared_item.get("sha256") != expected_digest:
+            raise PreparationError("prepared artifact declaration mismatch")
+        try:
+            size = artifact_path.stat().st_size
+        except OSError as exc:
+            raise PreparationError(f"prepared artifact is missing: {name}") from exc
+        if declared_item.get("bytes") != size:
+            raise PreparationError("prepared artifact size mismatch")
+        if _sha256_file(artifact_path) != expected_digest:
+            raise PreparationError("prepared artifact digest mismatch")
+    return dict(manifest)
 
 
 def _fixture_provenance(

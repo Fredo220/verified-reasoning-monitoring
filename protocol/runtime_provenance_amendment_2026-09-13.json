@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "amendment_id": "vrm-v1-runtime-provenance-2026-09-13",
+  "status": "approved_pre_outcome",
+  "approved_on": "2026-09-13",
+  "approval": {
+    "statement": "Amendment genehmigt.",
+    "source": "explicit user approval in the project execution thread"
+  },
+  "baseline_project_commit": "5a1a38cd7880165955f007661fce1094e1351b80",
+  "baseline_config_sha256": "80cbf9de19dc4974387fba0034370d27636bffd5ba535a8c78e6f3d5d945e31a",
+  "trigger": "The exact official LeanDojo cache object is unavailable, and the benchmark's canonical Mathlib commit pins Lean v4.29.0-rc1 rather than the previously recorded rc2 runtime.",
+  "evidence": {
+    "blocker_artifact": "protocol/evidence/lean-dojo-cache-blocker.json",
+    "blocker_artifact_sha256": "9dd514b4a923a326a395b2083dc9fec970b1824f0dc5a0e7d2d1b560c23160c7",
+    "prepared_manifest_sha256": "9114e446a0050eded479289522211c8141a513b65990a3c5dfe6d59031d7482c",
+    "benchmark_archive_sha256": "d04db9959c54278591a55934dee28367ed78131b58a4ae0dd249b597d0c8a60f",
+    "canonical_mathlib_commit": "1bc7728a050fc18ca2683f614c531cd7050ff063",
+    "canonical_mathlib_toolchain": "leanprover/lean4:v4.29.0-rc1",
+    "matching_comparator_commit": "ae061f79cdf7af458a26348177cfbd62da0123f6",
+    "official_mathlib_build_cache": "lake exe cache get completed and lake build --no-build Mathlib reported all targets up to date",
+    "local_amd64_emulation": "reproducible EMFILE failure even with nofile 1048576",
+    "native_linux_x86_64_rerun_required": true
+  },
+  "changes": {
+    "lean_version": {
+      "from": "v4.29.0-rc2",
+      "to": "v4.29.0-rc1"
+    },
+    "comparator_commit": {
+      "from": "3090445149fbaba51d8177df4eb2121573788341",
+      "to": "ae061f79cdf7af458a26348177cfbd62da0123f6"
+    },
+    "cache_provenance": {
+      "from": "unavailable exact LeanDojo pretraced cache object",
+      "to": "exact canonical Mathlib checkout plus its official Mathlib Azure build cache"
+    },
+    "audit_dependency_resolution": "Use a pre-resolved audit-local Lake manifest with path dependencies into the read-only canonical cache; candidate and diagnostic projects keep separate writable build metadata and perform no online update."
+  },
+  "prepared_artifacts": {
+    "dev.jsonl": "b2fe4816527a6cec534ce35c1a2e7ad3bb84f3481a08ec7074aeed9c48b6f9df",
+    "eligibility_audit.jsonl": "40048ddbc1ac5c9d09e5cf96a305790ba109fa48c144310a104e99c555de7eaa",
+    "id_test.jsonl": "e16af08d3affafad38fef1fe519fa6eb2fb9d1d9c8031ef8ebe161dc04abbcfc",
+    "ood_test.jsonl": "e67849ccac98e8abce0d7c815b89a60912069158ab39c623f2e6da24971b6031",
+    "train.jsonl": "1df1e68635ee7e158d7a665b014925d9d9005b73e71fe43ee8e5d506035c0dc8",
+    "val.jsonl": "c91322adfd195c22e45ad767945a6acffb1ae653deb11e77dfb8a8f9f2f7c659",
+    "verifier_metadata.jsonl": "d0af65f545427825b3146116d5cb34b59fd9ad624c4cc04214eb7d1ae7804100"
+  },
+  "preserved_without_change": [
+    "Gemma model and tokenizer revision",
+    "benchmark DOI and archive checksum",
+    "Mathlib repository commit",
+    "all task identities, prompts, splits and private verifier metadata",
+    "H1, H2 and H3",
+    "development feasibility thresholds",
+    "protected evaluation endpoints",
+    "30-second common task budget",
+    "monitor inputs and comparison methods"
+  ],
+  "historical_manifest_policy": "Do not rewrite the existing prepared manifest. Bind its exact hash and each artifact hash here. Reject receipts bearing the superseded rc2 verifier identity.",
+  "h3_fairness_policy": "Use the same cache-reset policy in every arm, rotate arm order, charge staging and verification overhead inside each task budget, and report common one-time preload costs separately.",
+  "required_acceptance": [
+    "pin and dependency consistency tests",
+    "unchanged corpus and private-artifact hashes",
+    "offline audit-project import and build",
+    "immutable cache and disposable metadata isolation",
+    "seven real native-Linux verifier tests",
+    "TCP and Unix-socket isolation",
+    "receipt identity and immutable resume rejection",
+    "one real Gemma generation-activation-verification probe",
+    "unchanged 32-by-4 development feasibility gate"
+  ],
+  "scientific_effect": "No hypothesis or endpoint changes. This operational provenance correction was approved before any development or protected model outcomes were opened."
+}

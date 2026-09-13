@@ -11,7 +11,12 @@ Preparation is pinned to LeanDojo Benchmark 4 v3, DOI
 `b58af89599d5bbc792abc3744e5d37d9`, Mathlib repository
 `https://github.com/leanprover-community/mathlib4` at commit
 `1bc7728a050fc18ca2683f614c531cd7050ff063`, LeanDojo `4.20.0`, and Lean
-`v4.29.0-rc2`. Any conflicting declared provenance blocks preparation. The
+`v4.29.0-rc1`. This corrects the earlier rc2 declaration under the approved,
+hash-bound [runtime provenance amendment](runtime_provenance_amendment_2026-09-13.md).
+The already prepared corpus is preserved byte-for-byte: its historical
+manifest and every public and private artifact must match the hashes recorded
+in that amendment before use. Any conflicting declared provenance blocks
+preparation or execution. The
 archive checksum must be verified when the archive is acquired; the extracted
 benchmark's `metadata.json`, every benchmark row, and every traced metadata row
 must identify the exact pinned repository and commit.

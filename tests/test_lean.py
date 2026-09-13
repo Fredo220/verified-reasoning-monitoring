@@ -73,8 +73,8 @@ class TestPinnedContract:
         assert lean.MATHLIB_REPO_URL == "https://github.com/leanprover-community/mathlib4"
         assert lean.MATHLIB_COMMIT == "1bc7728a050fc18ca2683f614c531cd7050ff063"
         assert lean.LEAN_DOJO_VERSION == "4.20.0"
-        assert lean.LEAN_VERSION == "v4.29.0-rc2"
-        assert lean.COMPARATOR_COMMIT == "3090445149fbaba51d8177df4eb2121573788341"
+        assert lean.LEAN_VERSION == "v4.29.0-rc1"
+        assert lean.COMPARATOR_COMMIT == "ae061f79cdf7af458a26348177cfbd62da0123f6"
         assert lean.COMPARATOR_REPO_URL == "https://github.com/leanprover/comparator"
         assert lean.LANDRUN_REPO_URL == "https://github.com/Zouuup/landrun"
         assert lean.LANDRUN_COMMIT == "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4"
@@ -140,9 +140,13 @@ class TestContentProvenance:
         root = tmp_path / "cache"
         (root / ".git").mkdir(parents=True)
         (root / ".git" / "index").write_bytes(b"one")
+        nested_git = root / ".lake" / "packages" / "aesop" / ".git"
+        nested_git.mkdir(parents=True)
+        (nested_git / "index").write_bytes(b"one")
         (root / "lakefile.toml").write_bytes(b"name='mathlib'")
         first = lean.cache_digest(root)
         (root / ".git" / "index").write_bytes(b"two")
+        (nested_git / "index").write_bytes(b"two")
         assert lean.cache_digest(root) == first
         (root / "lakefile.toml").write_bytes(b"changed")
         assert lean.cache_digest(root) != first
@@ -402,19 +406,154 @@ class TestNativeLinuxTransport:
         comparator = tmp_path / "comparator"
         config = tmp_path / "audit" / "comparator.json"
         command = lean._native_comparator_command(comparator, config)
-        assert command == ["lake", "env", str(comparator), str(config)]
+        assert command == ["lake", "-Kjobs=1", "env", str(comparator), str(config)]
         assert "Solution.lean" not in command
-        assert command[2] == str(comparator)
+        assert command[3] == str(comparator)
 
-    def test_native_setup_command_is_landrun_confined_and_network_denied(self, tmp_path):
+    def test_landrun_command_is_confined_and_network_denied(self, tmp_path):
         command = lean._landrun_command(
-            tmp_path / "landrun", tmp_path / "audit", ["lake", "update"]
+            tmp_path / "landrun", tmp_path / "audit", ["python", "probe.py"]
         )
         assert "--best-effort" in command
         assert "--rwx" in command
         assert str(tmp_path / "audit") in command
         assert "--unrestricted-network" not in command
-        assert command[-2:] == ["lake", "update"]
+        assert f"HOME={tmp_path / 'audit'}" in command
+        assert f"TMPDIR={tmp_path / 'audit'}" in command
+        assert "PATH" in command
+        assert "ELAN_HOME" in command
+        assert "DISABLE_REMOTE_CACHE=1" in command
+        assert "GITHUB_ACCESS_TOKEN=" in command
+        separator = command.index("--")
+        assert command[separator + 1 :] == ["python", "probe.py"]
+
+    def test_native_comparator_process_runs_inside_landrun(self, tmp_path, monkeypatch):
+        observed = {}
+
+        class Process:
+            returncode = 0
+
+            def communicate(self, timeout):
+                observed["timeout"] = timeout
+                return "accepted", None
+
+        def popen(command, **kwargs):
+            observed["command"] = command
+            observed["cwd"] = kwargs["cwd"]
+            observed["env"] = kwargs["env"]
+            return Process()
+
+        monkeypatch.setattr(lean.subprocess, "Popen", popen)
+        root = tmp_path / "audit"
+        root.mkdir()
+        landrun = tmp_path / "landrun"
+        comparator = tmp_path / "comparator"
+        lean4export = tmp_path / "lean4export-bin" / "lean4export"
+        lean4export.parent.mkdir()
+        lean4export.write_text("binary")
+        lean4export.chmod(0o755)
+        config = root / "comparator.json"
+
+        accepted, output = lean._run_comparator(
+            root,
+            config,
+            17.0,
+            comparator=comparator,
+            landrun=landrun,
+            lean4export=lean4export,
+        )
+
+        assert accepted is True and output == "accepted"
+        assert observed["cwd"] == root
+        assert observed["timeout"] == 17.0
+        assert observed["env"]["PATH"].split(os.pathsep)[0] == str(lean4export.parent)
+        assert observed["command"] == lean._landrun_command(
+            landrun,
+            root,
+            lean._native_comparator_command(comparator, config),
+        )
+
+    def test_native_comparator_rejects_unbound_lean4export(self, tmp_path):
+        root = tmp_path / "audit"
+        root.mkdir()
+        with pytest.raises(ValueError, match="lean4export"):
+            lean._run_comparator(
+                root,
+                root / "comparator.json",
+                17.0,
+                comparator=tmp_path / "comparator",
+                landrun=tmp_path / "landrun",
+            )
+
+    def test_audit_project_uses_only_preresolved_read_only_dependencies(
+        self, tmp_path, monkeypatch
+    ):
+        cache = tmp_path / "cache"
+        packages = cache / ".lake" / "packages"
+        for name in ("aesop", "Cli"):
+            package = packages / name
+            (package / ".lake" / "config" / name).mkdir(parents=True, exist_ok=True)
+            (package / ".lake" / "config" / name / "lakefile.olean").write_bytes(b"config")
+            (package / ".lake" / "build").mkdir()
+            (package / "lakefile.toml").write_text(f'name = "{name}"\n')
+        (cache / ".lake" / "config" / "mathlib").mkdir(parents=True)
+        (cache / ".lake" / "config" / "mathlib" / "lakefile.olean").write_bytes(b"config")
+        (cache / ".lake" / "build").mkdir()
+        (cache / "lakefile.lean").write_text("package mathlib\n")
+        (cache / "lake-manifest.json").write_text(json.dumps({
+            "version": "1.1.0",
+            "packagesDir": ".lake/packages",
+            "packages": [
+                {
+                    "name": "aesop", "scope": "leanprover-community",
+                    "manifestFile": "lake-manifest.json", "configFile": "lakefile.toml",
+                },
+                {
+                    "name": "Cli", "scope": "leanprover",
+                    "manifestFile": "lake-manifest.json", "configFile": "lakefile.toml",
+                },
+            ],
+        }), encoding="utf-8")
+        monkeypatch.setattr(
+            lean.subprocess,
+            "run",
+            lambda *args, **kwargs: pytest.fail("audit setup executed a subprocess"),
+        )
+
+        root = tmp_path / "candidate"
+        config = lean._write_audit_project(
+            root,
+            "theorem target : True := by\n  sorry\n",
+            "theorem target : True := by\n  exact True.intro\n",
+            "target",
+            cache_root=cache,
+        )
+
+        assert config == root / "comparator.json"
+        manifest = json.loads((root / "lake-manifest.json").read_text(encoding="utf-8"))
+        assert [package["name"] for package in manifest["packages"]] == [
+            "mathlib", "aesop", "Cli"
+        ]
+        assert all(package["type"] == "path" for package in manifest["packages"])
+        dependency_root = root / ".vrm-deps"
+        assert all(
+            Path(package["dir"]).is_relative_to(dependency_root)
+            for package in manifest["packages"]
+        )
+        mathlib_view = Path(manifest["packages"][0]["dir"])
+        aesop_view = Path(manifest["packages"][1]["dir"])
+        assert not (mathlib_view / ".git").exists()
+        assert not (aesop_view / ".git").exists()
+        assert (mathlib_view / ".lake" / "config").is_dir()
+        assert not (mathlib_view / ".lake" / "config").is_symlink()
+        assert (aesop_view / ".lake" / "config").is_dir()
+        assert not (aesop_view / ".lake" / "config").is_symlink()
+        assert (mathlib_view / ".lake" / "build").resolve() == (
+            cache / ".lake" / "build"
+        ).resolve()
+        assert (aesop_view / ".lake" / "build").resolve() == (
+            packages / "aesop" / ".lake" / "build"
+        ).resolve()
 
     def test_landrun_probes_both_tcp_and_unix_socket_connections(self):
         tcp = lean._connection_probe_command("tcp", "43123")
@@ -465,8 +604,11 @@ class TestRealComparatorOptIn:
         case = cases[case_name]
         backend = lean.LeanDojoBackend()
         readiness = backend.preflight()
+        if not readiness["ready"]:
+            _record_real_result(case_name, {"readiness": readiness})
         assert readiness["ready"], readiness
         result = backend.verify(case["task"], case["proof"], float(case.get("timeout_s", 180)))
+        _record_real_result(case_name, {"readiness": readiness, "result": result})
         assert result["status"] == case["expected"], result
 
     def test_real_disposable_cache_mutation_is_rejected(self):
@@ -480,6 +622,7 @@ class TestRealComparatorOptIn:
             cache_sha256=case["original_cache_sha256"],
         )
         readiness = backend.preflight()
+        _record_real_result("cache_mutation", {"readiness": readiness})
         assert not readiness["ready"], readiness
         assert "cache_digest_mismatch" in readiness["reasons"], readiness
 
@@ -488,3 +631,15 @@ def _real_cases():
     value = os.environ["VRM_LEAN_REAL_CASES"]
     path = Path(value)
     return json.loads(path.read_text() if path.is_file() else value)
+
+
+def _record_real_result(case_name, payload):
+    destination = os.environ.get("VRM_LEAN_REAL_RESULTS")
+    if not destination:
+        return
+    root = Path(destination)
+    root.mkdir(parents=True, exist_ok=True)
+    target = root / f"{case_name}.json"
+    temporary = target.with_suffix(".tmp")
+    temporary.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
+    os.replace(temporary, target)

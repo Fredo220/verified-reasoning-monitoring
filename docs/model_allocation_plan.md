@@ -69,7 +69,11 @@ Acceptance: one agreed interface contract and no duplicate writers. No wholesale
 
 Files: `src/vrm/lean.py`, `tests/test_lean.py`, `docs/lean_backend.md`.
 
-- [ ] Resolve the compatible official LeanDojo benchmark, repository, pretraced cache and toolchain combination.
+- [x] Resolve the benchmark/runtime provenance blocker through the approved
+  pre-outcome amendment: preserve Benchmark 4 v3 and its canonical Mathlib
+  commit, use the matching rc1 toolchain and Comparator, and replace the
+  unavailable LeanDojo object only with Mathlib's official Azure build cache.
+  Native-Linux acceptance remains a separate unchecked gate.
 - [ ] Specify the sandbox and proof/axiom audit before implementing the worker.
 - [ ] Implement valid, invalid, timeout and infrastructure-error results without conflating them.
 - [ ] Exercise known valid, invalid, self-referencing, `sorry` and unauthorized-assumption cases in the real backend.

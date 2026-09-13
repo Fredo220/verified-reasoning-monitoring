@@ -109,8 +109,40 @@ def small_sizes(monkeypatch):
 
 
 def test_split_sizes_are_frozen():
+    assert data.UPSTREAM["lean_version"] == "v4.29.0-rc1"
     assert data.FULL_SIZES == dict(dev=32, train=384, val=64, id_test=80, ood_test=40)
     assert data.REDUCED_SIZES == dict(dev=32, train=192, val=32, id_test=40, ood_test=20)
+
+
+def test_prepared_artifacts_are_bound_to_the_approved_amendment(tmp_path):
+    prepared = tmp_path / "prepared"
+    prepared.mkdir()
+    artifacts = {"dev.jsonl": b'{"task_id":"dev-1"}\n', "verifier_metadata.jsonl": b""}
+    declared = {}
+    for name, payload in artifacts.items():
+        (prepared / name).write_bytes(payload)
+        declared[name] = {"bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+    manifest = {"status": "ready", "artifacts": declared}
+    manifest_bytes = json.dumps(
+        manifest, sort_keys=True, separators=(",", ":")
+    ).encode() + b"\n"
+    (prepared / "manifest.json").write_bytes(manifest_bytes)
+    amendment = {
+        "status": "approved_pre_outcome",
+        "evidence": {"prepared_manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest()},
+        "prepared_artifacts": {
+            name: item["sha256"] for name, item in declared.items()
+        },
+    }
+
+    result = data.validate_prepared_artifacts(prepared, amendment)
+    assert result == manifest
+
+    changed = bytearray((prepared / "dev.jsonl").read_bytes())
+    changed[0] ^= 1
+    (prepared / "dev.jsonl").write_bytes(changed)
+    with pytest.raises(data.PreparationError, match="artifact digest mismatch"):
+        data.validate_prepared_artifacts(prepared, amendment)
 
 
 def test_assign_is_pure_order_independent_and_origin_isolated():

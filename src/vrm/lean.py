@@ -33,8 +33,8 @@ MATHLIB_REPO_URL = "https://github.com/leanprover-community/mathlib4"
 MATHLIB_COMMIT = "1bc7728a050fc18ca2683f614c531cd7050ff063"
 LEAN_DOJO_VERSION = "4.20.0"
 LEAN_DOJO_COMMIT = "3bbc4c02fb8a058b282c8d3982a02d6563f3b08a"
-LEAN_VERSION = "v4.29.0-rc2"
-COMPARATOR_COMMIT = "3090445149fbaba51d8177df4eb2121573788341"
+LEAN_VERSION = "v4.29.0-rc1"
+COMPARATOR_COMMIT = "ae061f79cdf7af458a26348177cfbd62da0123f6"
 COMPARATOR_REPO_URL = "https://github.com/leanprover/comparator"
 LANDRUN_REPO_URL = "https://github.com/Zouuup/landrun"
 LANDRUN_COMMIT = "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4"
@@ -175,7 +175,7 @@ def cache_digest(root: str | Path) -> str:
     digest = hashlib.sha256()
     for path in sorted(root.rglob("*"), key=lambda item: item.relative_to(root).as_posix()):
         relative = path.relative_to(root)
-        if relative.parts and relative.parts[0] == ".git":
+        if ".git" in relative.parts:
             continue
         metadata = path.lstat()
         mode = stat.S_IMODE(metadata.st_mode)
@@ -914,14 +914,27 @@ def _landrun_command(landrun: Path, writable_root: Path, command: list[str]) -> 
         "/dev",
         "--rwx",
         str(writable_root),
+        "--env",
+        f"HOME={writable_root}",
+        "--env",
+        f"TMPDIR={writable_root}",
+        "--env",
+        "PATH",
+        "--env",
+        "ELAN_HOME",
+        "--env",
+        "DISABLE_REMOTE_CACHE=1",
+        "--env",
+        "GITHUB_ACCESS_TOKEN=",
         "--ldd",
         "--add-exec",
+        "--",
         *command,
     ]
 
 
 def _native_comparator_command(comparator: Path, config_path: Path) -> list[str]:
-    return ["lake", "env", str(comparator), str(config_path)]
+    return ["lake", "-Kjobs=1", "env", str(comparator), str(config_path)]
 
 
 def _connection_probe_command(family: str, endpoint: str) -> list[str]:
@@ -1059,6 +1072,31 @@ def _target_sources(task: dict, proof: str) -> tuple[str, str, str]:
     return _reconstruct_sources(task, source, proof)
 
 
+def _stage_dependency_view(source: Path, destination: Path) -> None:
+    """Copy mutable Lake config while linking immutable source and build data."""
+    source = source.resolve(strict=True)
+    destination.mkdir(parents=True, exist_ok=False)
+    for child in source.iterdir():
+        if child.name in {".git", ".lake"}:
+            continue
+        (destination / child.name).symlink_to(
+            child, target_is_directory=child.is_dir()
+        )
+
+    source_lake = source / ".lake"
+    if not source_lake.is_dir():
+        return
+    destination_lake = destination / ".lake"
+    destination_lake.mkdir()
+    for child in source_lake.iterdir():
+        if child.name == "config":
+            shutil.copytree(child, destination_lake / child.name, symlinks=True)
+        elif child.name != "packages":
+            (destination_lake / child.name).symlink_to(
+                child, target_is_directory=child.is_dir()
+            )
+
+
 def _write_audit_project(
     root: Path,
     challenge: str,
@@ -1066,33 +1104,85 @@ def _write_audit_project(
     full_name: str,
     *,
     cache_root: Path = _CACHE_ROOT,
-    landrun: Path | None = None,
 ) -> Path:
+    cache_root = cache_root.resolve(strict=True)
+    source_manifest = json.loads(
+        (cache_root / "lake-manifest.json").read_text(encoding="utf-8")
+    )
+    packages_dir = source_manifest.get("packagesDir")
+    packages = source_manifest.get("packages")
+    if not isinstance(packages_dir, str) or not isinstance(packages, list):
+        raise RuntimeError("pinned Mathlib Lake manifest is malformed")
+    package_base = (cache_root / PurePosixPath(packages_dir)).resolve(strict=True)
+    if not package_base.is_relative_to(cache_root):
+        raise RuntimeError("pinned Mathlib package directory escapes cache root")
+
     root.mkdir(parents=True, exist_ok=False)
+    dependency_root = root / ".vrm-deps"
+    dependency_root.mkdir()
+    mathlib_view = dependency_root / "mathlib"
+    _stage_dependency_view(cache_root, mathlib_view)
+
+    audit_packages = [{
+        "type": "path",
+        "scope": "",
+        "name": "mathlib",
+        "manifestFile": "lake-manifest.json",
+        "inherited": False,
+        "dir": str(mathlib_view),
+        "configFile": "lakefile.lean",
+    }]
+    for package in packages:
+        if not isinstance(package, dict):
+            raise RuntimeError("pinned Mathlib package entry is malformed")
+        name = package.get("name")
+        manifest_file = package.get("manifestFile")
+        config_file = package.get("configFile")
+        if not all(isinstance(value, str) and value for value in (
+            name, manifest_file, config_file
+        )):
+            raise RuntimeError("pinned Mathlib package identity is malformed")
+        package_root = (package_base / name).resolve(strict=True)
+        if not package_root.is_dir() or not package_root.is_relative_to(cache_root):
+            raise RuntimeError("pinned Mathlib package escapes cache root")
+        package_view = dependency_root / name
+        _stage_dependency_view(package_root, package_view)
+        audit_packages.append({
+            "type": "path",
+            "scope": package.get("scope") or "",
+            "name": name,
+            "manifestFile": manifest_file,
+            "inherited": True,
+            "dir": str(package_view),
+            "configFile": config_file,
+        })
     (root / "lean-toolchain").write_text("leanprover/lean4:" + LEAN_VERSION + "\n")
     (root / "lakefile.toml").write_text(
         'name = "VRMAudit"\n'
         'version = "0.0.0"\n\n'
-        f'[[require]]\nname = "mathlib"\npath = "{cache_root}"\n\n'
+        f'[[require]]\nname = "mathlib"\npath = "{mathlib_view}"\n\n'
         '[[lean_lib]]\nname = "Challenge"\n\n'
         '[[lean_lib]]\nname = "Solution"\n'
     )
     (root / "Challenge.lean").write_text(challenge, encoding="utf-8")
     (root / "Solution.lean").write_text(solution, encoding="utf-8")
+    (root / "lake-manifest.json").write_text(
+        json.dumps(
+            {
+                "version": source_manifest.get("version", "1.1.0"),
+                "packagesDir": ".lake/packages",
+                "packages": audit_packages,
+                "name": "VRMAudit",
+                "lakeDir": ".lake",
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     config_path = root / "comparator.json"
     config_path.write_text(json.dumps(_comparator_config(full_name)), encoding="utf-8")
-    command = ["lake", "update"]
-    if landrun is not None:
-        command = _landrun_command(landrun, root, command)
-    subprocess.run(
-        command,
-        cwd=root,
-        capture_output=True,
-        text=True,
-        check=True,
-        timeout=120,
-        env={**os.environ, "GITHUB_ACCESS_TOKEN": ""},
-    )
     return config_path
 
 
@@ -1102,15 +1192,31 @@ def _run_comparator(
     timeout_s: float,
     *,
     comparator: Path = _COMPARATOR_BIN,
+    landrun: Path | None = None,
+    lean4export: Path | None = None,
 ) -> tuple[bool, str]:
+    process_env = {**os.environ, "GITHUB_ACCESS_TOKEN": ""}
+    if landrun is not None:
+        if lean4export is None:
+            raise ValueError("native Comparator requires the pinned lean4export executable")
+        lean4export = lean4export.resolve(strict=True)
+        if not lean4export.is_file() or not os.access(lean4export, os.X_OK):
+            raise RuntimeError("lean4export executable is missing")
+        existing_path = process_env.get("PATH", "")
+        process_env["PATH"] = str(lean4export.parent) + (
+            os.pathsep + existing_path if existing_path else ""
+        )
+    command = _native_comparator_command(comparator, config_path)
+    if landrun is not None:
+        command = _landrun_command(landrun, root, command)
     process = subprocess.Popen(
-        _native_comparator_command(comparator, config_path),
+        command,
         cwd=root,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
         start_new_session=True,
-        env={**os.environ, "GITHUB_ACCESS_TOKEN": ""},
+        env=process_env,
     )
     try:
         output, _ = process.communicate(timeout=timeout_s)
@@ -1159,6 +1265,9 @@ def _execute_verification(
     source = source_path.read_text(encoding="utf-8")
     challenge, solution, original = _reconstruct_sources(task, source, proof)
     comparator = comparator_root / ".lake/build/bin/comparator"
+    lean4export = (
+        comparator_root / ".lake/packages/lean4export/.lake/build/bin/lean4export"
+    )
 
     candidate_root = work_root / "candidate"
     config_path = _write_audit_project(
@@ -1167,10 +1276,14 @@ def _execute_verification(
         solution,
         task["full_name"],
         cache_root=cache_root,
-        landrun=landrun,
     )
     accepted, output = _run_comparator(
-        candidate_root, config_path, float(timeout_s), comparator=comparator
+        candidate_root,
+        config_path,
+        float(timeout_s),
+        comparator=comparator,
+        landrun=landrun,
+        lean4export=lean4export,
     )
     if output.startswith("__VRM_CANDIDATE_TIMEOUT__"):
         return {"kind": "timeout", "phase": "candidate", "output": output[-4096:]}
@@ -1192,10 +1305,14 @@ def _execute_verification(
         original,
         task["full_name"],
         cache_root=cache_root,
-        landrun=landrun,
     )
     diagnostic_ok, diagnostic_output = _run_comparator(
-        diagnostic_root, diagnostic_config, 180.0, comparator=comparator
+        diagnostic_root,
+        diagnostic_config,
+        180.0,
+        comparator=comparator,
+        landrun=landrun,
+        lean4export=lean4export,
     )
     if not diagnostic_ok:
         raise RuntimeError(

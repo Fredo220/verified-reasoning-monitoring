@@ -1,0 +1,73 @@
+{
+  "artifact_type": "operational_blocker",
+  "blocker_id": "vrm-leandojo-cache-2026-09-13",
+  "classification": "external_infrastructure_unavailable",
+  "scientific_feasibility_result": false,
+  "project": {
+    "path": "/Users/friedrichreichelt/Documents/verified-reasoning-monitoring",
+    "branch": "codex/initial-study",
+    "commit": "5a1a38cd7880165955f007661fce1094e1351b80"
+  },
+  "frozen_identity": {
+    "benchmark": "LeanDojo Benchmark 4 v3",
+    "benchmark_doi": "10.5281/zenodo.18815372",
+    "benchmark_archive_md5": "b58af89599d5bbc792abc3744e5d37d9",
+    "benchmark_archive_sha256": "d04db9959c54278591a55934dee28367ed78131b58a4ae0dd249b597d0c8a60f",
+    "mathlib_repo": "https://github.com/leanprover-community/mathlib4",
+    "mathlib_commit": "1bc7728a050fc18ca2683f614c531cd7050ff063",
+    "lean": "v4.29.0-rc2",
+    "lean_dojo_version": "4.20.0",
+    "lean_dojo_commit": "3bbc4c02fb8a058b282c8d3982a02d6563f3b08a"
+  },
+  "expected_cache_url": "https://dl.fbaipublicfiles.com/lean-dojo/leanprover-community-mathlib4-1bc7728a050fc18ca2683f614c531cd7050ff063.tar.gz",
+  "observations": [
+    {
+      "check": "pinned_cache_http_get",
+      "result": "HTTP 403 AccessDenied",
+      "meaning": "The cache object required by LeanDojo 4.20.0 is not publicly retrievable."
+    },
+    {
+      "check": "documented_example_cache_http_get",
+      "url": "https://dl.fbaipublicfiles.com/lean-dojo/yangky11-lean4-example-7b6ecb9ad4829e4e73600a3329baeb3b5df8d23f.tar.gz",
+      "result": "HTTP 200",
+      "meaning": "The official cache service is reachable; the failure is specific to the required object."
+    },
+    {
+      "check": "installed_and_current_cache_resolution",
+      "result": "same canonical URL construction",
+      "meaning": "Pinned LeanDojo 4.20.0 and current upstream source both use the same official endpoint and key format."
+    },
+    {
+      "check": "official_benchmark_archive",
+      "result": "verified archive contains benchmark JSON only",
+      "meaning": "The Zenodo archive does not include a compiled or pretraced Mathlib repository."
+    },
+    {
+      "check": "official_benchmark_metadata_from_repo",
+      "result": "/scratch/10710/rhsiang/LeanDojo-v2/raid/.cache/lean_dojo/leanprover-community-mathlib4-1bc7728a050fc18ca2683f614c531cd7050ff063/mathlib4_d",
+      "meaning": "The published benchmark records the author's local creation path, not a second public cache URL."
+    }
+  ],
+  "ruled_out": [
+    "Colab-specific failure",
+    "local network outage",
+    "incorrect LeanDojo cache key construction",
+    "moved endpoint reflected in current upstream source",
+    "compiled cache embedded in the official Benchmark 4 v3 archive"
+  ],
+  "conclusion": "The exact official LeanDojo pretraced cache required by the frozen protocol cannot currently be recovered from the documented official sources. This is an operational blocker, not evidence about H1, H2, H3, or scientific feasibility.",
+  "minimal_amendment_candidate": {
+    "change": "Provision the unchanged canonical Mathlib repository at the same frozen commit and populate its build products using Mathlib's official build-cache mechanism, while retaining LeanDojo Benchmark 4 v3 trace metadata and every existing task, split, hash, verifier, and study gate.",
+    "unchanged": [
+      "research question and H1-H3",
+      "Gemma model and tokenizer revisions",
+      "benchmark DOI and task splits",
+      "Mathlib repository and commit",
+      "Lean toolchain",
+      "Comparator and Landrun",
+      "candidate generation and monitor inputs",
+      "feasibility and confirmatory gates"
+    ],
+    "requires_explicit_protocol_amendment": true
+  }
+}

@@ -65,6 +65,8 @@ def test_smoke_loads_only_development_verifier_rows(tmp_path, monkeypatch):
         return {"status": "completed"}
 
     monkeypatch.setattr(cli, "LeanDojoBackend", Backend)
+    monkeypatch.setattr(cli, "load_protocol_amendment", lambda *args: {})
+    monkeypatch.setattr(cli, "validate_prepared_artifacts", lambda *args: {})
     monkeypatch.setattr(cli, "HFRunner", lambda *args, **kwargs: runner)
     monkeypatch.setattr(cli, "run_single_candidate_probe", probe)
     monkeypatch.setattr(cli, "run_development_smoke", run)
@@ -111,6 +113,8 @@ def test_probe_candidate_uses_the_smoke_identity_without_running_the_gate(
         return {"status": "integration_probe_completed"}
 
     monkeypatch.setattr(cli, "LeanDojoBackend", Backend)
+    monkeypatch.setattr(cli, "load_protocol_amendment", lambda *args: {})
+    monkeypatch.setattr(cli, "validate_prepared_artifacts", lambda *args: {})
     monkeypatch.setattr(cli, "HFRunner", lambda *args, **kwargs: object())
     monkeypatch.setattr(cli, "run_single_candidate_probe", probe)
     monkeypatch.setattr(
@@ -151,6 +155,8 @@ def test_smoke_stops_when_single_candidate_probe_fails(tmp_path, monkeypatch):
             return {"ready": True, "status": "ready"}
 
     monkeypatch.setattr(cli, "LeanDojoBackend", Backend)
+    monkeypatch.setattr(cli, "load_protocol_amendment", lambda *args: {})
+    monkeypatch.setattr(cli, "validate_prepared_artifacts", lambda *args: {})
     monkeypatch.setattr(cli, "HFRunner", lambda *args, **kwargs: object())
     monkeypatch.setattr(
         cli, "run_single_candidate_probe",
