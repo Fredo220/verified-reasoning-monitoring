@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "status": "measured_operational_limitation",
+  "measured_on": "2026-09-14",
+  "scientific_outcome": false,
+  "runtime_identity": {
+    "container_image_digest": "sha256:0c1ed089532fdb118749ec6033e634282344766c923c57738f82ee07b62ce21c",
+    "container_platform": "linux/arm64",
+    "cache_sha256": "14f2b096ac58afa54b625ac64c281bdfc112f9f327b3c196df46bfccf5473fd1",
+    "comparator_binary_sha256": "e57b70b2d80715b00349951c6d391321cfe7a822612c3012f33973b049a55580",
+    "lean4export_binary_sha256": "9a1d0c549791684485a3729f6958c5c1acd7add8651847ece27fab7f7e3c8662",
+    "landrun_sha256": "177fa7db952b2542135c373474c7c5263f8a0607e68fe22fa5fbcc4fae5a320b"
+  },
+  "optimization": {
+    "change": "Move the full 6.7 GB cache digest from every candidate call to the already required preflight and post-run checks; retain exact per-candidate source hashing and a read-only cache mount.",
+    "known_valid_call_before_s": 40.74568666599225,
+    "known_valid_call_after_s": 6.60886954201851,
+    "candidate_timeout_s": 5.0
+  },
+  "registered_timeout_result": {
+    "case": "known-valid frozen development theorem and reference proof",
+    "status": "timeout",
+    "proof_audit": "candidate_deadline",
+    "call_wall_s": 6.60886954201851
+  },
+  "docker_volume_control": {
+    "purpose": "Check whether the macOS bind mount caused the remaining delay.",
+    "cache_content_sha256": "14f2b096ac58afa54b625ac64c281bdfc112f9f327b3c196df46bfccf5473fd1",
+    "status": "timeout",
+    "call_wall_s": 6.647334791952744,
+    "interpretation": "Moving identical cache contents to a Docker volume did not resolve the five-second deadline failure."
+  },
+  "long_timeout_control": {
+    "candidate_timeout_s": 180.0,
+    "status": "valid",
+    "call_elapsed_s": 40.53449016599916
+  },
+  "interpretation": "The verifier is functionally accepted but this local runtime cannot complete even the known-valid control within the registered five-second per-candidate verification limit. This is a hardware and scheduling limitation, not evidence about H1, H2, H3, Gemma candidate validity, or the development yield gate. The timeout must not be relabeled as invalid."
+}

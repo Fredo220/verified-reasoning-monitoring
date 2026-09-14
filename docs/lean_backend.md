@@ -1,12 +1,12 @@
 # Trusted Lean verifier backend
 
-**Status:** implemented and unit-tested locally; the approved runtime correction
-has not yet completed native-Linux acceptance.
+**Status:** the hardened local Linux/arm64 Docker runtime passed preflight and
+all seven registered real acceptance cases on 2026-09-14. No Gemma candidate or
+H1-H3 outcome had been opened at that point.
 
 This document describes the verifier used by the approved study. It records the
-implemented trust boundary and the evidence still required before any real
-Gemma candidate can count as `valid`. It is not a security certification and it
-does not claim that the seven opt-in Linux tests have passed.
+implemented trust boundary and the evidence required before any real Gemma
+candidate can count as `valid`. It is not a security certification.
 
 ## Purpose
 
@@ -25,13 +25,19 @@ the worker returns the exact provenance receipt expected by the host.
 | LeanDojo | version `4.20.0`, commit `3bbc4c02fb8a058b282c8d3982a02d6563f3b08a` |
 | Lean | `v4.29.0-rc1` |
 | Comparator | `ae061f79cdf7af458a26348177cfbd62da0123f6` |
+| Comparator compatibility patch | `02382151f52b32c7d66bb355974bc218cd73644f1557be11853b78499a8bee03` |
 | Landrun | `811cfff51ceaf3d9843708aa6d22e9b84ccac8b4` |
 | lean4export | `048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d` |
 | Lean4Checker | `b7398199245524275543dec6113229c9bb4902e5` |
 | Permitted axioms | `propext`, `Quot.sound`, `Classical.choice` |
+| Accepted container image ID | `sha256:0c1ed089532fdb118749ec6033e634282344766c923c57738f82ee07b62ce21c` |
+| Accepted container platform | `linux/arm64` |
+| Hardened seccomp profile | `85ea2ee4cfc4f957232ea300ee87890d4a56f44aeeb4a4ecd177e3eb778c5c1e` |
 
-`configs/study.json` is the machine-readable authority. `src/vrm/lean.py`, the
-notebook, and this document must agree with it.
+`configs/study.json` is the machine-readable scientific authority. The approved
+runtime amendment and Docker addendum govern only the fields they explicitly
+supersede. `src/vrm/lean.py` and this document must agree with those records.
+The old notebook's native transport is not an accepted execution path.
 
 The exact LeanDojo pretraced-cache object was unavailable from its documented
 official location. Before any model outcome was opened, the approved
@@ -40,6 +46,12 @@ replaced only that unavailable runtime path with the same canonical Mathlib
 checkout and Mathlib's official Azure build cache. It also corrected the Lean
 and Comparator pins to the versions required by that checkout. Tasks, prompts,
 splits, private verifier data, hypotheses, endpoints, and gates did not change.
+
+The observed Colab kernel could not enforce Landlock. Before any model outcome
+was opened, the [Docker runtime addendum](docker_verifier_runtime_addendum_2026-09-14.md)
+therefore accepted a hardened local Linux/arm64 verifier. It preserves the same
+proof semantics and component revisions while binding the container, seccomp
+profile and required one-line Landrun compatibility patch.
 
 ## Information boundary
 
@@ -80,10 +92,10 @@ accepted only with an exact audit receipt binding the task, source, trace,
 cache, tools, runtime, and axiom policy. A missing, malformed, or mismatched
 receipt becomes `infrastructure_error`, never `valid`.
 
-## Native Linux isolation
+## Linux isolation
 
-The Colab path uses native Linux under a dedicated non-root user. Preflight must
-confirm all of the following before model loading:
+The verifier runs as a non-root user in a Linux container. Preflight must
+confirm all of the following before any candidate can be trusted:
 
 1. Linux and non-root execution.
 2. A clean pinned Mathlib checkout populated from the official Mathlib Azure
@@ -91,9 +103,9 @@ confirm all of the following before model loading:
 3. A clean pinned Comparator checkout, dependency revisions, and executable
    hashes.
 4. The expected Landrun binary digest.
-5. Landrun can write inside the temporary audit tree but cannot write outside
-   it.
-6. Landrun blocks both TCP and Unix-socket connections.
+5. The combined Docker/Landrun boundary can write inside the temporary audit
+   tree but cannot write outside it.
+6. The combined boundary blocks both TCP and Unix-socket connections.
 7. The runtime Lean version matches the frozen toolchain.
 
 The trusted host stages each audit project from verified inputs. Comparator,
@@ -110,10 +122,13 @@ tree. Candidate and diagnostic checks use separate trees. This prevents an
 audit from mutating the canonical cache while avoiding any network resolution
 during verification.
 
-The code also contains a Docker transport with a read-only filesystem,
-network disabled, dropped capabilities, resource limits, a non-root user, and a
-read-only cache mount. The approved free-Colab path tests the native transport;
-support for Docker is not evidence that the native path works.
+Docker adds a read-only filesystem, disabled networking, dropped capabilities,
+resource limits, a non-root user, a read-only cache mount and a pinned Moby
+seccomp profile with `connect` and `socketcall` removed from the allowlist.
+Landrun provides the inner filesystem boundary. Because the available kernel
+exposes Landlock ABI 8, the inner process uses `--best-effort`; the runtime is
+accepted only when concrete write and network denial probes pass. Colab's
+unsupported native path remains rejected rather than silently weakened.
 
 ## Status policy
 
@@ -131,7 +146,7 @@ Infrastructure deadlines and setup failures are never converted to candidate
 timeouts or negative labels. The final H1/H2 missingness policy is frozen only
 after the development smoke, as required by the research plan.
 
-## Required real acceptance evidence
+## Real acceptance evidence
 
 Local mocked and unit tests are insufficient. In one freshly provisioned Linux
 runtime, set `VRM_RUN_REAL_LEAN_TESTS=1` and provide the audited
@@ -146,25 +161,28 @@ runtime, set `VRM_RUN_REAL_LEAN_TESTS=1` and provide the audited
 7. mutation of a disposable Mathlib cache copy makes preflight fail with
    `cache_digest_mismatch`.
 
-The run must save structured outcomes, component versions and hashes, runtime
-identity, and elapsed times. An incomplete or failed suite is exported as
-`verifier-failure`; only a complete successful suite is labeled
-`verifier-acceptance`. Until all seven tests pass, the verifier is operationally
-unverified and the 32-by-4 Gemma smoke must not start.
+The final Docker run saved structured outcomes, component versions and hashes,
+runtime identity and elapsed times. All seven cases passed. The sanitized,
+machine-readable record is
+`protocol/evidence/docker-verifier-acceptance-2026-09-14.json`. A later runtime
+must reproduce acceptance under its own immutable identity; this result does
+not make arbitrary Docker or native environments trusted.
 
 ## Operational entry points
 
-The notebook provisions dependencies and then calls:
+The accepted local verifier calls:
 
 ```text
-vrm preflight --execution-mode native ...
+vrm preflight --execution-mode docker \
+  --cache-dir <verified-mathlib-cache> \
+  --cache-sha256 <registered-cache-sha256> \
+  --landrun-sha256 <registered-landrun-sha256>
 ```
 
-Only a `ready` result permits later verification. The notebook then constructs
-the seven registered cases from the frozen development artifacts, runs the
-opt-in real suite, and restores the deliberately mutated disposable cache
-as read-only before loading Gemma. The notebook checks the full cache digest
-again after the smoke and before accepting its summary. The package-backed
-smoke uses the same configured backend; notebook cells do not implement an
-alternative judge. Temporary Colab unavailability is an operational blocker,
-not evidence for or against scientific feasibility.
+`VRM_LEAN_IMAGE` must be the immutable accepted image ID or a newly built image
+that passes the full acceptance suite. Only a `ready` result permits later
+verification. Gemma generation can still run on Colab, but Colab's observed
+kernel must not be presented as the trusted verifier. Any split execution must
+preserve immutable request identities and include transfer and verification
+costs in the later equal-budget utility study. Temporary runtime unavailability
+is an operational blocker, not evidence for or against scientific feasibility.

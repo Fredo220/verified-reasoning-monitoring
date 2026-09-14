@@ -36,8 +36,20 @@ LEAN_DOJO_COMMIT = "3bbc4c02fb8a058b282c8d3982a02d6563f3b08a"
 LEAN_VERSION = "v4.29.0-rc1"
 COMPARATOR_COMMIT = "ae061f79cdf7af458a26348177cfbd62da0123f6"
 COMPARATOR_REPO_URL = "https://github.com/leanprover/comparator"
+COMPARATOR_PATCH_SHA256 = (
+    "02382151f52b32c7d66bb355974bc218cd73644f1557be11853b78499a8bee03"
+)
 LANDRUN_REPO_URL = "https://github.com/Zouuup/landrun"
 LANDRUN_COMMIT = "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4"
+SECCOMP_PROFILE_SOURCE_URL = (
+    "https://github.com/moby/profiles/blob/seccomp/v0.2.1/seccomp/default.json"
+)
+SECCOMP_PROFILE_SOURCE_SHA256 = (
+    "536529b665dd0972c37bfb569f5d4ac8a53592e7b00752bc39ff063ca9864c74"
+)
+SECCOMP_PROFILE_SHA256 = (
+    "85ea2ee4cfc4f957232ea300ee87890d4a56f44aeeb4a4ecd177e3eb778c5c1e"
+)
 LEAN4EXPORT_COMMIT = "048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d"
 LEAN4CHECKER_COMMIT = "b7398199245524275543dec6113229c9bb4902e5"
 ALLOWED_AXIOMS = ("propext", "Quot.sound", "Classical.choice")
@@ -60,6 +72,9 @@ _PREFLIGHT_TIMEOUT_S = 180.0
 _WORKER_SETUP_GRACE_S = 600.0
 _COMPARATOR_ROOT = Path("/opt/vrm/comparator")
 _COMPARATOR_BIN = _COMPARATOR_ROOT / ".lake/build/bin/comparator"
+_LEAN4EXPORT_BIN = (
+    _COMPARATOR_ROOT / ".lake/packages/lean4export/.lake/build/bin/lean4export"
+)
 _CACHE_ROOT = Path("/cache")
 
 
@@ -67,6 +82,15 @@ def _is_hex(value: object, size: int) -> bool:
     return isinstance(value, str) and len(value) == size and all(
         character in "0123456789abcdef" for character in value
     )
+
+
+def _docker_image_digest(image: object) -> str:
+    if not isinstance(image, str):
+        raise ValueError("Docker verifier image must be pinned by digest")
+    digest = image.rsplit("@", 1)[-1]
+    if not digest.startswith("sha256:") or not _is_hex(digest[7:], 64):
+        raise ValueError("Docker verifier image must be pinned by digest")
+    return digest
 
 
 def _is_repo_url(value: object) -> bool:
@@ -355,6 +379,7 @@ class LeanDojoBackend:
         self.repo_commit = configured_commit
         self._preflight_ready = False
         self._tool_hashes = {"comparator": "", "lean4export": ""}
+        self._container_platform = ""
 
     def _probe_receipt(self) -> dict:
         return {
@@ -368,17 +393,30 @@ class LeanDojoBackend:
             "lean_version": LEAN_VERSION,
             "comparator_commit": COMPARATOR_COMMIT,
             "comparator_repo_url": COMPARATOR_REPO_URL,
+            "comparator_patch_sha256": COMPARATOR_PATCH_SHA256,
             "landrun_repo_url": LANDRUN_REPO_URL,
             "landrun_commit": LANDRUN_COMMIT,
             "lean4export_commit": LEAN4EXPORT_COMMIT,
             "lean4checker_commit": LEAN4CHECKER_COMMIT,
             "cache_sha256": self.cache_sha256,
             "landrun_sha256": self.landrun_sha256,
+            "container_image_digest": (
+                _docker_image_digest(self.image) if self.execution_mode == "docker" else None
+            ),
+            "container_platform": (
+                self._container_platform if self.execution_mode == "docker" else None
+            ),
+            "seccomp_profile_sha256": (
+                SECCOMP_PROFILE_SHA256 if self.execution_mode == "docker" else None
+            ),
             "comparator_binary_sha256": self._tool_hashes["comparator"],
             "lean4export_binary_sha256": self._tool_hashes["lean4export"],
             "allowed_axioms": list(ALLOWED_AXIOMS),
             "landrun_enforced": True,
             "kernel_replay": True,
+            "cache_validation_policy": (
+                "full_digest_preflight_and_post_run; per_candidate_source_digest"
+            ),
         }
 
     @property
@@ -503,8 +541,9 @@ class LeanDojoBackend:
         checks: dict[str, bool] = {}
         if not shutil.which("docker"):
             reasons.append("docker_cli_missing")
-        digest = self.image.rsplit("@", 1)[-1]
-        if not digest.startswith("sha256:") or not _is_hex(digest[7:], 64):
+        try:
+            _docker_image_digest(self.image)
+        except ValueError:
             reasons.append("pinned_image_missing")
         if self.cache_dir is None or not self.cache_dir.is_dir():
             reasons.append("cache_missing")
@@ -516,6 +555,10 @@ class LeanDojoBackend:
             reasons.append("landrun_digest_pin_missing")
         if (self.repo_url, self.repo_commit) != (MATHLIB_REPO_URL, MATHLIB_COMMIT):
             reasons.append("repository_pin_mismatch")
+        try:
+            _seccomp_profile_path()
+        except (OSError, ValueError, RuntimeError):
+            reasons.append("seccomp_profile_invalid")
 
         result = {
             "runtime_ready": False,
@@ -558,14 +601,17 @@ class LeanDojoBackend:
             reasons.append("pinned_image_not_local")
             return result
         image_metadata = json.loads(inspect.stdout)
+        metadata = image_metadata[0] if isinstance(image_metadata, list) and len(image_metadata) == 1 else {}
         if (
             not isinstance(image_metadata, list)
             or len(image_metadata) != 1
-            or image_metadata[0].get("Os") != "linux"
-            or image_metadata[0].get("Config", {}).get("Volumes")
+            or metadata.get("Os") != "linux"
+            or metadata.get("Architecture") not in {"amd64", "arm64"}
+            or metadata.get("Config", {}).get("Volumes")
         ):
-            reasons.append("image_requires_linux_and_no_declared_volumes")
+            reasons.append("image_requires_supported_linux_and_no_declared_volumes")
             return result
+        self._container_platform = f"linux/{metadata['Architecture']}"
 
         observation = self._request({"op": "probe"}, deadline)
         result["observation"] = observation
@@ -582,11 +628,17 @@ class LeanDojoBackend:
             or observation.get("kind") != "probe_ok"
             or observation.get("audit") != self._probe_receipt()
         ):
-            reasons.append("isolated_audit_probe_failed")
+            error = observation.get("error", "") if isinstance(observation, dict) else ""
+            reasons.append(
+                "cache_digest_mismatch"
+                if isinstance(error, str) and error.endswith("cache_digest_mismatch")
+                else "isolated_audit_probe_failed"
+            )
             return result
         checks.update(
             {
                 "sandbox": True,
+                "seccomp_no_connect": True,
                 "cache": True,
                 "source_provenance": True,
                 "toolchain": True,
@@ -647,6 +699,7 @@ class LeanDojoBackend:
         return result
 
     def _command(self, name: str) -> list[str]:
+        seccomp_profile = _seccomp_profile_path()
         return [
             "docker",
             "run",
@@ -659,8 +712,9 @@ class LeanDojoBackend:
             "--read-only",
             "--cap-drop=ALL",
             "--security-opt=no-new-privileges=true",
+            "--security-opt",
+            f"seccomp={seccomp_profile}",
             "--user=65534:65534",
-            "--pid=private",
             "--ipc=none",
             "--cgroupns=private",
             "--pids-limit=128",
@@ -677,6 +731,7 @@ class LeanDojoBackend:
             "--workdir=/work",
             "--env=HOME=/work",
             "--env=TMPDIR=/tmp",
+            "--env=PATH=" + str(_LEAN4EXPORT_BIN.parent) + ":/usr/local/bin:/usr/bin:/bin",
             "--env=DISABLE_REMOTE_CACHE=1",
             "--env=PYTHONDONTWRITEBYTECODE=1",
             "--env=GITHUB_ACCESS_TOKEN=",
@@ -697,6 +752,12 @@ class LeanDojoBackend:
             "repo_commit": MATHLIB_COMMIT,
             "cache_sha256": self.cache_sha256,
             "landrun_sha256": self.landrun_sha256,
+            "image_digest": (
+                _docker_image_digest(self.image) if self.execution_mode == "docker" else None
+            ),
+            "container_platform": (
+                self._container_platform if self.execution_mode == "docker" else None
+            ),
         }
         if self.execution_mode == "native":
             if request.get("op") != "verify":
@@ -874,6 +935,9 @@ def _check_comparator_source(root: Path | None = None) -> dict[str, str]:
         COMPARATOR_REPO_URL,
         COMPARATOR_COMMIT,
     )
+    patch = root / ".vrm-comparator-landrun-separator.patch"
+    if _sha256_file(patch) != COMPARATOR_PATCH_SHA256:
+        raise RuntimeError("Comparator compatibility patch digest mismatch")
     if (root / "lean-toolchain").read_text(encoding="utf-8").strip() != (
         "leanprover/lean4:" + LEAN_VERSION
     ):
@@ -911,6 +975,9 @@ def _landrun_command(landrun: Path, writable_root: Path, command: list[str]) -> 
     """Confine a subprocess to one writable tree and grant no network access."""
     return [
         str(landrun),
+        # Older kernels may lack only a newer Landlock operation. Preflight still
+        # fails closed unless the concrete write, TCP, and Unix-socket probes pass.
+        "--best-effort",
         "--ro",
         "/",
         "--rw",
@@ -934,6 +1001,25 @@ def _landrun_command(landrun: Path, writable_root: Path, command: list[str]) -> 
         "--",
         *command,
     ]
+
+
+def _seccomp_profile_path() -> Path:
+    """Return the packaged Moby profile after checking its exact hardened form."""
+    profile = Path(__file__).with_name("seccomp-no-connect-v0.2.1.json")
+    if _sha256_file(profile) != SECCOMP_PROFILE_SHA256:
+        raise RuntimeError("Docker seccomp profile digest mismatch")
+    document = json.loads(profile.read_text(encoding="utf-8"))
+    if document.get("defaultAction") != "SCMP_ACT_ERRNO":
+        raise RuntimeError("Docker seccomp profile must fail closed")
+    allowed = {
+        name
+        for group in document.get("syscalls", [])
+        if group.get("action") == "SCMP_ACT_ALLOW"
+        for name in group.get("names", [])
+    }
+    if {"connect", "socketcall"} & allowed:
+        raise RuntimeError("Docker seccomp profile permits outbound connect")
+    return profile.resolve(strict=True)
 
 
 def _native_comparator_command(comparator: Path, config_path: Path) -> list[str]:
@@ -1021,9 +1107,9 @@ def _check_landrun(expected_sha256: str, work_root: Path | None = None) -> Path:
     return executable
 
 
-def _check_cache(request: dict) -> dict:
+def _check_cache(request: dict, *, full_digest: bool) -> dict:
     source = _CACHE_ROOT
-    if cache_digest(source) != request["cache_sha256"]:
+    if full_digest and cache_digest(source) != request["cache_sha256"]:
         raise RuntimeError("cache_digest_mismatch")
     repository = _check_clean_repo(source, MATHLIB_REPO_URL, MATHLIB_COMMIT)
     toolchain = (source / "lean-toolchain").read_text(encoding="utf-8").strip()
@@ -1040,18 +1126,38 @@ def _assert_worker_request(request: dict) -> None:
         raise ValueError("worker cache digest pin missing")
     if not _is_hex(request.get("landrun_sha256"), 64):
         raise ValueError("worker Landrun digest pin missing")
+    if request.get("execution_mode") == "docker":
+        image_digest = request.get("image_digest")
+        if (
+            not isinstance(image_digest, str)
+            or not image_digest.startswith("sha256:")
+            or not _is_hex(image_digest[7:], 64)
+        ):
+            raise ValueError("worker Docker image digest pin missing")
+        if request.get("container_platform") not in {"linux/amd64", "linux/arm64"}:
+            raise ValueError("worker Docker platform pin missing")
+
+
+def _worker_backend(request: dict, tool_hashes: dict[str, str]) -> LeanDojoBackend:
+    backend = LeanDojoBackend(
+        execution_mode="docker",
+        image="worker@" + request["image_digest"],
+        cache_sha256=request["cache_sha256"],
+        landrun_sha256=request["landrun_sha256"],
+    )
+    backend._tool_hashes = dict(tool_hashes)
+    backend._container_platform = request["container_platform"]
+    return backend
 
 
 def _worker_probe(request: dict) -> dict:
     _sandbox_check()
     _assert_worker_request(request)
-    _check_cache(request)
+    _check_cache(request, full_digest=True)
     _check_leandojo_install()
-    _check_comparator_source()
+    tool_hashes = _check_comparator_source()
     _check_landrun(request["landrun_sha256"])
-    receipt = LeanDojoBackend(
-        cache_sha256=request["cache_sha256"], landrun_sha256=request["landrun_sha256"]
-    )._probe_receipt()
+    receipt = _worker_backend(request, tool_hashes)._probe_receipt()
     return {"kind": "probe_ok", "audit": receipt}
 
 
@@ -1335,9 +1441,13 @@ def _worker_verify(request: dict) -> dict:
     ):
         raise ValueError("invalid worker proof or candidate timeout")
 
-    _check_cache(request)
+    # Preflight binds the full cache before candidates run. The cache is mounted
+    # read-only, each target source is hashed below, and the run rehashes the full
+    # cache after collection. Rehashing 6.7 GB for every candidate would consume
+    # the registered verification budget without strengthening the model boundary.
+    _check_cache(request, full_digest=False)
     _check_leandojo_install()
-    _check_comparator_source()
+    tool_hashes = _check_comparator_source()
     _check_landrun(request["landrun_sha256"])
     challenge, solution, original = _target_sources(task, proof)
 
@@ -1349,9 +1459,7 @@ def _worker_verify(request: dict) -> dict:
     if output.startswith("__VRM_CANDIDATE_TIMEOUT__"):
         return {"kind": "timeout", "phase": "candidate", "output": output[-4096:]}
     if accepted:
-        receipt = LeanDojoBackend(
-            cache_sha256=request["cache_sha256"], landrun_sha256=request["landrun_sha256"]
-        )._audit_receipt(task)
+        receipt = _worker_backend(request, tool_hashes)._audit_receipt(task)
         return {"kind": "valid", "audit": receipt, "output": output[-4096:]}
 
     diagnostic_root = Path("/work/diagnostic")

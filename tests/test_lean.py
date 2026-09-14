@@ -104,11 +104,51 @@ class TestPinnedContract:
         assert lean.LEAN_VERSION == "v4.29.0-rc1"
         assert lean.COMPARATOR_COMMIT == "ae061f79cdf7af458a26348177cfbd62da0123f6"
         assert lean.COMPARATOR_REPO_URL == "https://github.com/leanprover/comparator"
+        assert lean.COMPARATOR_PATCH_SHA256 == (
+            "02382151f52b32c7d66bb355974bc218cd73644f1557be11853b78499a8bee03"
+        )
         assert lean.LANDRUN_REPO_URL == "https://github.com/Zouuup/landrun"
         assert lean.LANDRUN_COMMIT == "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4"
+        assert lean.SECCOMP_PROFILE_SOURCE_SHA256 == (
+            "536529b665dd0972c37bfb569f5d4ac8a53592e7b00752bc39ff063ca9864c74"
+        )
+        assert lean.SECCOMP_PROFILE_SHA256 == (
+            "85ea2ee4cfc4f957232ea300ee87890d4a56f44aeeb4a4ecd177e3eb778c5c1e"
+        )
         assert lean.LEAN4EXPORT_COMMIT == "048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d"
         assert lean.LEAN4CHECKER_COMMIT == "b7398199245524275543dec6113229c9bb4902e5"
         assert lean.ALLOWED_AXIOMS == ("propext", "Quot.sound", "Classical.choice")
+
+    def test_comparator_patch_is_exact_and_tamper_evident(self, tmp_path):
+        packaged = Path("runtime/comparator-landrun-separator.patch").read_bytes()
+        recorded = tmp_path / ".vrm-comparator-landrun-separator.patch"
+        recorded.write_bytes(packaged)
+        assert lean._sha256_file(recorded) == lean.COMPARATOR_PATCH_SHA256
+        recorded.write_bytes(packaged + b"\n")
+        assert lean._sha256_file(recorded) != lean.COMPARATOR_PATCH_SHA256
+
+    def test_worker_receipt_preserves_docker_identity_and_binary_hashes(self):
+        request = {
+            "cache_sha256": SHA["cache"],
+            "landrun_sha256": SHA["landrun"],
+            "image_digest": "sha256:" + "b" * 64,
+            "container_platform": "linux/arm64",
+        }
+        tool_hashes = {"comparator": "5" * 64, "lean4export": "6" * 64}
+        receipt = lean._worker_backend(request, tool_hashes)._probe_receipt()
+        assert receipt["execution_mode"] == "docker"
+        assert receipt["container_image_digest"] == "sha256:" + "b" * 64
+        assert receipt["container_platform"] == "linux/arm64"
+        assert receipt["seccomp_profile_sha256"] == lean.SECCOMP_PROFILE_SHA256
+        assert receipt["comparator_binary_sha256"] == "5" * 64
+        assert receipt["lean4export_binary_sha256"] == "6" * 64
+        assert receipt["cache_validation_policy"] == (
+            "full_digest_preflight_and_post_run; per_candidate_source_digest"
+        )
+
+    def test_local_docker_image_id_is_an_immutable_digest_reference(self):
+        image_id = "sha256:" + "a" * 64
+        assert lean._docker_image_digest(image_id) == image_id
 
     def test_verifier_metadata_is_not_part_of_public_task_projection(self):
         validated = lean._validated_task(TASK)
@@ -403,19 +443,75 @@ class TestMockedTransport:
             "--cpus=1",
             "--pull=never",
             "--ipc=none",
-            "--pid=private",
         ]:
             assert flag in command
         mount = command[command.index("--mount") + 1]
         assert mount.endswith(",dst=/cache,readonly")
         assert "/var/run/docker.sock" not in " ".join(command)
+        assert f"seccomp={lean._seccomp_profile_path()}" in command
+        assert (
+            "--env=PATH=" + str(lean._LEAN4EXPORT_BIN.parent) + ":/usr/local/bin:/usr/bin:/bin"
+        ) in command
+        assert "--pid=host" not in command
+        assert "--pid=private" not in command
         assert IMAGE in command
+
+    def test_packaged_seccomp_profile_is_pinned_and_denies_connect(self):
+        profile = lean._seccomp_profile_path()
+        document = json.loads(profile.read_text(encoding="utf-8"))
+        allowed = {
+            name
+            for group in document["syscalls"]
+            if group.get("action") == "SCMP_ACT_ALLOW"
+            for name in group["names"]
+        }
+        assert document["defaultAction"] == "SCMP_ACT_ERRNO"
+        assert "connect" not in allowed
+        assert "socketcall" not in allowed
+
+    def test_tampered_seccomp_profile_fails_closed(self, tmp_path, monkeypatch):
+        profile = tmp_path / "seccomp-no-connect-v0.2.1.json"
+        profile.write_text('{"defaultAction":"SCMP_ACT_ALLOW"}')
+        monkeypatch.setattr(lean, "__file__", str(tmp_path / "lean.py"))
+        with pytest.raises(RuntimeError, match="digest mismatch"):
+            lean._seccomp_profile_path()
 
     def test_missing_docker_is_reported_not_raised(self, backend, monkeypatch):
         monkeypatch.setattr(lean.shutil, "which", lambda *args: None)
         result = backend.preflight()
         assert result["ready"] is False
         assert "docker_cli_missing" in result["reasons"]
+
+    def test_cache_digest_failure_is_preserved_from_isolated_probe(
+        self, backend, monkeypatch
+    ):
+        monkeypatch.setattr(lean.shutil, "which", lambda *args: "/usr/bin/docker")
+        monkeypatch.setattr(
+            lean.subprocess,
+            "run",
+            lambda command, **kwargs: subprocess.CompletedProcess(
+                command,
+                0,
+                (
+                    '[{"Os":"linux","Architecture":"arm64","Config":{"Volumes":null}}]'
+                    if command[:3] == ["docker", "image", "inspect"]
+                    else '{"OSType":"linux","MemoryLimit":true,"SwapLimit":true,'
+                    '"PidsLimit":true,"CpuCfsQuota":true,'
+                    '"SecurityOptions":["name=seccomp"]}'
+                ),
+                "",
+            ),
+        )
+        monkeypatch.setattr(
+            backend,
+            "_request",
+            lambda *args: {
+                "kind": "infrastructure_error",
+                "error": "RuntimeError: cache_digest_mismatch",
+            },
+        )
+        result = backend.preflight()
+        assert result["reasons"] == ["cache_digest_mismatch"]
 
     def test_cli_presence_is_not_daemon_readiness(self, backend, monkeypatch):
         monkeypatch.setattr(lean.shutil, "which", lambda *args: "/bin/docker")
@@ -442,7 +538,7 @@ class TestNativeLinuxTransport:
         command = lean._landrun_command(
             tmp_path / "landrun", tmp_path / "audit", ["python", "probe.py"]
         )
-        assert "--best-effort" not in command
+        assert "--best-effort" in command
         assert "--rwx" in command
         assert str(tmp_path / "audit") in command
         assert "--unrestricted-network" not in command

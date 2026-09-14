@@ -164,7 +164,11 @@ If the approach works, a lightweight external monitor could help allocate expens
 
 ## Current status
 
-The protocol and local implementation are being checked. The first empirical milestone is a development-only feasibility run with real Gemma candidates and real Lean verification.
+The trusted local Lean verifier now passes its security and proof-acceptance
+tests. It is still too slow for the study's fixed five-second per-candidate
+verification limit, so no Gemma candidate or H1-H3 result has been opened. The
+next step is a faster accepted runtime, followed by the development-only run
+with real Gemma candidates and real Lean verification.
 
 The study proceeds to its protected tests only if the development run produces enough valid candidates, invalid candidates and problems containing both.
 

@@ -42,6 +42,27 @@ def test_frozen_study_config_has_complete_machine_readable_identity():
         key: value for key, value in config.items() if key != "config_sha256"})
 
 
+def test_docker_runtime_addendum_binds_every_acceptance_artifact():
+    path = Path("protocol/docker_verifier_runtime_addendum_2026-09-14.json")
+    document = json.loads(path.read_text(encoding="utf-8"))
+    assert document["status"] == "approved_pre_outcome"
+    assert document["scientific_effect"].startswith("None.")
+    for section, path_key, digest_key in (
+        (document["accepted_runtime"], "dockerfile", "dockerfile_sha256"),
+        (document["accepted_runtime"], "comparator_patch", "comparator_patch_sha256"),
+        (document["accepted_runtime"], "seccomp_profile", "seccomp_profile_sha256"),
+        (document["acceptance"], "record", "record_sha256"),
+        (document["budget_probe"], "record", "record_sha256"),
+    ):
+        artifact = Path(section[path_key])
+        assert hashlib.sha256(artifact.read_bytes()).hexdigest() == section[digest_key]
+    acceptance = json.loads(Path(document["acceptance"]["record"]).read_text())
+    assert acceptance["passed"] is True
+    assert acceptance["preflight"]["observation"]["audit"][
+        "container_image_digest"
+    ] == document["accepted_runtime"]["container_image_digest"]
+
+
 @pytest.mark.parametrize("mutation", [
     lambda c: c.pop("benchmark"),
     lambda c: c["benchmark"].__setitem__("archive_md5", "not-a-hash"),

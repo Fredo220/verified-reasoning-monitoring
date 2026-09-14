@@ -2,8 +2,9 @@
 
 **Updated:** 2026-09-14
 
-The study has not evaluated H1, H2, or H3. The current deliverable is still the
-registered 32-task by four-candidate development smoke.
+The study has not evaluated H1, H2, or H3. The trusted-verifier implementation
+gate is complete. The next empirical gate is one natural Gemma candidate,
+followed by the registered 32-task by four-candidate development smoke.
 
 ## Accepted local implementation
 
@@ -22,15 +23,11 @@ registered 32-task by four-candidate development smoke.
   `9114e446a0050eded479289522211c8141a513b65990a3c5dfe6d59031d7482c`.
 - The smoke CLI, baseline monitor APIs, Motion-only reader, Three-Reader-shaped
   monitor, budget helpers, and paired-statistics primitives exist.
-- The package-backed Colab notebook now requires an exact project commit, reads
-  `HF_TOKEN` only from Colab Secrets, provisions the verifier before Gemma, and
-  runs the registered real verifier suite before the smoke. The smoke uses one
-  loaded model process: it first persists one complete integration candidate
-  without evaluating the scientific gate, then resumes the same immutable run
-  through all 128 candidates. Its cache-mutation test restores the disposable
-  cache in a `finally` path. Corpus uploads occur outside the pinned Git
-  checkout, failed verifier suites receive a failure label, and the cache is
-  rechecked after the smoke before its summary is accepted.
+- The package-backed Colab notebook requires an exact project commit and reads
+  `HF_TOKEN` only from Colab Secrets. Its existing native-verifier cells now
+  fail safely on the observed Colab kernel and must not be retried. Generation
+  and local verification still need a hash-bound split-execution handoff before
+  the one-candidate integration probe can run.
 - The verifier contract and its exact runtime, provenance, isolation, status,
   and acceptance requirements are documented in `docs/lean_backend.md`.
 - The exact LeanDojo cache object was confirmed unavailable and recorded as an
@@ -38,35 +35,49 @@ registered 32-task by four-candidate development smoke.
   2026-09-13. It preserves the prepared corpus and protocol while using the
   canonical Mathlib commit, its official Azure build cache, Lean rc1, and the
   matching Comparator revision.
-- The amended offline audit-project layout reaches the real Comparator build in
-  an isolated Linux/amd64 container. The remaining local failure is the already
-  documented `EMFILE` problem under macOS emulation, so native Linux remains
-  the required acceptance environment.
+- The observed Colab kernel cannot enforce Landlock and remains rejected as a
+  native verifier environment. A pre-outcome runtime addendum records the
+  hardened local Linux/arm64 Docker path instead.
+- The accepted Docker image is pinned by image ID and uses the same canonical
+  Mathlib, Lean, LeanDojo, Comparator, Landrun, lean4export and Lean4Checker
+  revisions. Its one-line Comparator patch only inserts the child-command
+  separator required by the pinned Landrun CLI.
+- Docker runs networkless and read-only with dropped capabilities, resource
+  limits, a non-root user, a read-only cache and a pinned seccomp profile. The
+  inner Landrun filesystem boundary is accepted only after concrete write,
+  TCP and Unix-socket denial probes pass.
+- Real preflight and all seven registered acceptance cases passed: valid,
+  invalid, self-reference, `sorry`, unauthorized axiom, sandbox escape and
+  disposable-cache mutation.
 
-Current local verification:
+Current local verification in the pinned Python 3.12 environment:
 
 ```text
-177 passed, 7 skipped
+191 passed, 7 real tests skipped
 ```
 
-This result was reproduced under Python 3.12.1 with the exact pinned Colab
-requirements. The post-amendment suite includes regression tests proving that
+The seven real cases also passed separately against the accepted Docker image.
+The post-addendum suite includes regression tests proving that
 the native Comparator command is launched inside Landrun with an explicit
 argument boundary, the required runtime environment, and the exact hashed
 `lean4export` path. It also checks failure-artifact labeling, upload isolation,
-and the post-smoke cache-integrity gate. The preserved Linux/amd64 emulation
-probe reaches the real Lean build through that path before stopping at the
-documented emulation-only file-descriptor failure.
+and the post-smoke cache-integrity gate. The real cases are no longer pending.
+Their final receipt binds the Linux/arm64 image ID, seccomp profile,
+compatibility patch, cache and built tool binaries. H1-H3 remain untouched.
 
-The seven skips are the six real Linux Comparator/Landrun security cases plus
-the disposable-cache mutation check. They are the next gate, not optional
-evidence.
+The redundant per-candidate full-cache hash was removed while retaining the
+full preflight and post-run hashes, the read-only cache mount and exact target
+source hashing. A registered five-second known-valid control then fell from
+40.75 to 6.61 seconds but still timed out. The same proof was accepted with a
+long timeout in 40.53 seconds. The local verifier is therefore correct but not
+fast enough for the registered five-second utility schedule; this is not a
+candidate-yield or hypothesis result.
 
 ## Still unverified
 
-- The amended pinned native Linux verifier has not completed preflight in a
-  real target runtime.
 - The notebook provisioning path has not completed from a blank Colab runtime.
+- The notebook has not yet been adapted to hand generated candidates to the
+  accepted local verifier without violating the later H3 cost accounting.
 - No real Gemma forward pass or candidate activation receipt exists for this
   study.
 - The 128-candidate development smoke has not run.
@@ -75,21 +86,23 @@ evidence.
 - No protected monitor training, H1/H2 evaluation, equal-budget H3 run, figures,
   or final report exists.
 
-The browser automation service was unavailable during the latest Colab attempt.
-That is an operational limitation and is not a scientific feasibility result.
+Colab's kernel limitation is operational and not a scientific feasibility
+result. The notebook must not rerun the rejected native-verifier path.
 
 ## Next gate
 
-1. Run the amended notebook's verifier-only cells in a blank native-Linux
-   runtime and verify the amendment and preserved-corpus hashes.
-2. Pass preflight plus the seven real adversarial tests, including TCP and Unix
-   socket isolation.
-3. Only then run the single-process Gemma smoke: require the first complete
-   candidate integration receipt before continuing through the 32 by 4 run.
-4. Continue to H1-H3 only if the frozen feasibility thresholds pass.
+1. Keep the accepted local Docker verifier immutable and revalidate the
+   addendum, acceptance record and preserved-corpus hashes.
+2. Locate a verifier runtime that reproduces acceptance and completes the
+   known-valid control within five seconds, or record resource infeasibility
+   under the frozen budget. Do not extend the deadline.
+3. Only then run one natural Gemma candidate through generation, activation
+   persistence and trusted Lean verification without exposing verifier metadata
+   to Gemma.
+4. Continue through the 32 by 4 development smoke only after that receipt is
+   complete and resumable.
+5. Continue to H1-H3 only if the frozen feasibility thresholds pass.
 
-The local branch has immutable baseline commits, but the execution revision is
-not yet available from a configured remote. Before a remote Colab run, publish
-the reviewed execution commit only with explicit authorization and place its
-exact hash in `PROJECT_GIT_REV`. Do not use a branch name or mutable tag for
-experiment identity.
+Before a remote Colab generation run, publish the reviewed execution commit and
+place its exact hash in `PROJECT_GIT_REV`. Do not use a branch name or mutable
+tag for experiment identity.

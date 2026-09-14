@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "addendum_id": "vrm-v1-docker-verifier-runtime-2026-09-14",
+  "status": "approved_pre_outcome",
+  "approved_on": "2026-09-14",
+  "approval": {
+    "statement": "Trotzdem ausführen genehmigt",
+    "source": "explicit user authorization in the project execution thread before model outcomes"
+  },
+  "trigger": "The observed free-Colab kernel exposes Landlock ABI 0 and cannot satisfy the registered native verifier isolation checks.",
+  "supersedes": "Only the prior operational requirement to rerun verification natively inside Linux/x86_64 Colab. All scientific fields remain unchanged.",
+  "accepted_runtime": {
+    "execution_mode": "docker",
+    "container_platform": "linux/arm64",
+    "container_image_digest": "sha256:0c1ed089532fdb118749ec6033e634282344766c923c57738f82ee07b62ce21c",
+    "dockerfile": "runtime/Dockerfile.verifier-arm64",
+    "dockerfile_sha256": "aa97ca6a1dd4b445a5c7ff52f647fe1277f3cba665f43b30c9d85703186dd320",
+    "cache_sha256": "14f2b096ac58afa54b625ac64c281bdfc112f9f327b3c196df46bfccf5473fd1",
+    "comparator_binary_sha256": "e57b70b2d80715b00349951c6d391321cfe7a822612c3012f33973b049a55580",
+    "lean4export_binary_sha256": "9a1d0c549791684485a3729f6958c5c1acd7add8651847ece27fab7f7e3c8662",
+    "landrun_binary_sha256": "177fa7db952b2542135c373474c7c5263f8a0607e68fe22fa5fbcc4fae5a320b",
+    "comparator_patch": "runtime/comparator-landrun-separator.patch",
+    "comparator_patch_sha256": "02382151f52b32c7d66bb355974bc218cd73644f1557be11853b78499a8bee03",
+    "seccomp_profile": "src/vrm/seccomp-no-connect-v0.2.1.json",
+    "seccomp_profile_sha256": "85ea2ee4cfc4f957232ea300ee87890d4a56f44aeeb4a4ecd177e3eb778c5c1e",
+    "cache_validation_policy": "full digest before and after a run; exact source digest per candidate; read-only cache mount"
+  },
+  "acceptance": {
+    "record": "protocol/evidence/docker-verifier-acceptance-2026-09-14.json",
+    "record_sha256": "c6e6c2f2e112cfaffd5bc65b39a9d019e07408538afb395d1fc01b3d5dbbffa2",
+    "passed": true,
+    "cases": [
+      "valid",
+      "invalid",
+      "self_reference",
+      "sorry",
+      "unauthorized_axiom",
+      "sandbox_escape",
+      "cache_mutation"
+    ]
+  },
+  "budget_probe": {
+    "record": "protocol/evidence/docker-verifier-budget-probe-2026-09-14.json",
+    "record_sha256": "702ded3b3654dffe810f97100a35b5a76b69be561edbcb5a9f970dad2159e9e2",
+    "registered_five_second_known_valid_result": "timeout",
+    "scientific_outcome": false
+  },
+  "preserved_without_change": [
+    "prepared corpus and every task identity",
+    "public prompts and private verifier metadata",
+    "Gemma model and tokenizer revision",
+    "H1, H2 and H3",
+    "development feasibility thresholds",
+    "protected endpoints and baselines",
+    "candidate policy and compute budgets"
+  ],
+  "scientific_effect": "None. The verifier gate passed, but the local runtime does not meet the registered five-second candidate deadline. No Gemma candidate or H1-H3 outcome was opened before this record."
+}

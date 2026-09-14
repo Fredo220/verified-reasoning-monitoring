@@ -18,6 +18,9 @@ vrm = "vrm.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+vrm = ["seccomp-no-connect-v0.2.1.json"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]

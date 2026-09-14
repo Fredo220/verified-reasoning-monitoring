@@ -1,11 +1,13 @@
 # Colab runtime repair: 2026-09-14
 
-## Scope and current result
+## Scope and superseding result
 
-The Lean version-probe defect is fixed and verified in the existing Colab T4
-session. The native verifier is still unavailable because that session's kernel
-does not support Landlock. This is an operational blocker, not a study outcome.
-No model candidates or H1-H3 outcomes were generated during this repair.
+The Lean version-probe defect was fixed and verified in the existing Colab T4
+session. That session's native verifier remains unavailable because its kernel
+does not support Landlock. A later pre-outcome addendum accepted a hardened
+local Linux/arm64 Docker verifier, which passed all registered real cases. See
+`docs/docker_verifier_runtime_addendum_2026-09-14.md`. No model candidates or
+H1-H3 outcomes were generated during either repair.
 
 ## Evidence observed directly in Colab
 
@@ -25,7 +27,8 @@ wanted {Landlock V9; FS: all; Net: all; Scoped: all}
 ```
 
 These are transcribed observations from the Colab diagnostic output, not an
-exported verifier acceptance artifact. The seven acceptance tests have not passed.
+acceptance artifact for Colab. They do not invalidate the separately recorded
+local Docker acceptance.
 
 ## Repairs
 
@@ -43,7 +46,7 @@ exported verifier acceptance artifact. The seven acceptance tests have not passe
 Targeted local validation: 82 passed, 7 real-Linux tests skipped. These local
 results are not evidence of native sandbox acceptance.
 
-## Instructions for continuation
+## Historical instructions
 
 - Do not repeat Mathlib downloads, rebuild the corpus, change thresholds, or
   bypass the sandbox on this Colab session. Python packages cannot enable a
@@ -56,8 +59,9 @@ results are not evidence of native sandbox acceptance.
 - Alternatively, investigate the existing Docker verifier on a compatible host.
   Moving verification outside Colab requires a documented execution arrangement;
   H3 must still account for transfers and all arm costs consistently.
-- Only after successful sandbox acceptance run the seven registered verifier
-  tests, then the one-candidate integration check and 32x4 development smoke.
+- The accepted local Docker verifier now satisfies the registered security-case
+  gate. The next step is the one-candidate integration check and then the 32x4
+  development smoke.
 - The public notebook must pin a source commit containing the strict sandbox
   repair. Opening an old commit URL does not automatically update its source pin.
 

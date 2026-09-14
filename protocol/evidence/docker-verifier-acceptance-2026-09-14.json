@@ -1,0 +1,114 @@
+{
+  "canonical_cache_sha256_after": "14f2b096ac58afa54b625ac64c281bdfc112f9f327b3c196df46bfccf5473fd1",
+  "cases": {
+    "cache_mutation": {
+      "elapsed_s": 59.10912483406719,
+      "expected": "cache_digest_mismatch",
+      "observed": [
+        "cache_digest_mismatch"
+      ],
+      "passed": true
+    },
+    "invalid": {
+      "elapsed_s": 39.54399120796006,
+      "expected": "invalid",
+      "observed": "invalid",
+      "passed": true
+    },
+    "sandbox_escape": {
+      "elapsed_s": 29.32296912500169,
+      "expected": "invalid",
+      "observed": "invalid",
+      "passed": true
+    },
+    "self_reference": {
+      "elapsed_s": 57.44592091604136,
+      "expected": "invalid",
+      "observed": "invalid",
+      "passed": true
+    },
+    "sorry": {
+      "elapsed_s": 37.762823292054236,
+      "expected": "invalid",
+      "observed": "invalid",
+      "passed": true
+    },
+    "unauthorized_axiom": {
+      "elapsed_s": 29.220734208007343,
+      "expected": "invalid",
+      "observed": "invalid",
+      "passed": true
+    },
+    "valid": {
+      "elapsed_s": 40.53449016599916,
+      "expected": "valid",
+      "observed": "valid",
+      "passed": true
+    }
+  },
+  "finished_at_unix": 1789353003.170998,
+  "passed": true,
+  "preflight": {
+    "allowed_axioms": [
+      "propext",
+      "Quot.sound",
+      "Classical.choice"
+    ],
+    "audit_ready": true,
+    "checks": {
+      "cache": true,
+      "landrun": true,
+      "linux_daemon": true,
+      "proof_audit": true,
+      "resource_limits": true,
+      "sandbox": true,
+      "seccomp_available": true,
+      "seccomp_no_connect": true,
+      "source_provenance": true,
+      "toolchain": true
+    },
+    "elapsed_s": 37.00045604095794,
+    "observation": {
+      "audit": {
+        "allowed_axioms": [
+          "propext",
+          "Quot.sound",
+          "Classical.choice"
+        ],
+        "benchmark_doi": "10.5281/zenodo.18815372",
+        "cache_sha256": "14f2b096ac58afa54b625ac64c281bdfc112f9f327b3c196df46bfccf5473fd1",
+        "cache_validation_policy": "full_digest_preflight_and_post_run; per_candidate_source_digest",
+        "comparator_binary_sha256": "e57b70b2d80715b00349951c6d391321cfe7a822612c3012f33973b049a55580",
+        "comparator_commit": "ae061f79cdf7af458a26348177cfbd62da0123f6",
+        "comparator_patch_sha256": "02382151f52b32c7d66bb355974bc218cd73644f1557be11853b78499a8bee03",
+        "comparator_repo_url": "https://github.com/leanprover/comparator",
+        "container_image_digest": "sha256:0c1ed089532fdb118749ec6033e634282344766c923c57738f82ee07b62ce21c",
+        "container_platform": "linux/arm64",
+        "execution_mode": "docker",
+        "kernel_replay": true,
+        "landrun_commit": "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4",
+        "landrun_enforced": true,
+        "landrun_repo_url": "https://github.com/Zouuup/landrun",
+        "landrun_sha256": "177fa7db952b2542135c373474c7c5263f8a0607e68fe22fa5fbcc4fae5a320b",
+        "lean4checker_commit": "b7398199245524275543dec6113229c9bb4902e5",
+        "lean4export_binary_sha256": "9a1d0c549791684485a3729f6958c5c1acd7add8651847ece27fab7f7e3c8662",
+        "lean4export_commit": "048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d",
+        "lean_dojo_commit": "3bbc4c02fb8a058b282c8d3982a02d6563f3b08a",
+        "lean_dojo_version": "4.20.0",
+        "lean_version": "v4.29.0-rc1",
+        "repo_commit": "1bc7728a050fc18ca2683f614c531cd7050ff063",
+        "repo_url": "https://github.com/leanprover-community/mathlib4",
+        "seccomp_profile_sha256": "85ea2ee4cfc4f957232ea300ee87890d4a56f44aeeb4a4ecd177e3eb778c5c1e",
+        "trusted_judge": "Comparator"
+      },
+      "kind": "probe_ok"
+    },
+    "ready": true,
+    "reasons": [],
+    "runtime_ready": true,
+    "status": "ready"
+  },
+  "sandbox_escape_target_absent": true,
+  "schema_version": 1,
+  "started_at_unix": 1789352646.3602118
+}
