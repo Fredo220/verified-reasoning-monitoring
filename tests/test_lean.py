@@ -39,6 +39,34 @@ TASK = {
 IMAGE = "vrm-lean@sha256:" + "b" * 64
 
 
+def test_version_probe_does_not_materialize_lake_dependencies(tmp_path, monkeypatch):
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append((command, kwargs))
+        return subprocess.CompletedProcess(command, 0, f"Lean (version {lean.LEAN_VERSION.removeprefix('v')})", "")
+
+    monkeypatch.setattr(lean.subprocess, "run", run)
+    lean._check_lean_version(tmp_path, 5)
+    assert calls[0][0] == ["lean", "--version"]
+    assert calls[0][1]["cwd"] == tmp_path
+    assert calls[0][1]["timeout"] == 5
+
+
+def test_version_probe_preserves_failure_reason(tmp_path, monkeypatch):
+    monkeypatch.setattr(lean.subprocess, "run", lambda *args, **kwargs:
+                        subprocess.CompletedProcess(args[0], 1, "", "toolchain unavailable"))
+    with pytest.raises(RuntimeError, match="toolchain unavailable"):
+        lean._check_lean_version(tmp_path, 5)
+
+
+def test_version_probe_rejects_wrong_version(tmp_path, monkeypatch):
+    monkeypatch.setattr(lean.subprocess, "run", lambda *args, **kwargs:
+                        subprocess.CompletedProcess(args[0], 0, "Lean (version 4.0.0)", ""))
+    with pytest.raises(RuntimeError, match="version mismatch"):
+        lean._check_lean_version(tmp_path, 5)
+
+
 @pytest.fixture
 def backend(tmp_path):
     return lean.LeanDojoBackend(

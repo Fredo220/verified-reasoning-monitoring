@@ -851,14 +851,18 @@ def _check_cache_root(root: Path, expected_sha256: str, *, full_digest: bool) ->
 
 
 def _check_lean_version(root: Path, timeout_s: float) -> None:
-    version = subprocess.run(
-        ["lake", "env", "lean", "--version"],
+    # Elan reads lean-toolchain here without asking Lake to materialize packages.
+    result = subprocess.run(
+        ["lean", "--version"],
         cwd=root,
         capture_output=True,
         text=True,
-        check=True,
+        check=False,
         timeout=timeout_s,
-    ).stdout
+    )
+    if result.returncode:
+        raise RuntimeError(f"Lean version probe failed: {result.stderr[-2048:]}")
+    version = result.stdout
     if f"version {LEAN_VERSION.removeprefix('v')}" not in version:
         raise RuntimeError("runtime Lean version mismatch")
 
@@ -1026,16 +1030,7 @@ def _check_cache(request: dict) -> dict:
     toolchain = (source / "lean-toolchain").read_text(encoding="utf-8").strip()
     if toolchain != "leanprover/lean4:" + LEAN_VERSION:
         raise RuntimeError("mathlib Lean toolchain mismatch")
-    version = subprocess.run(
-        ["lake", "env", "lean", "--version"],
-        cwd=source,
-        capture_output=True,
-        text=True,
-        check=True,
-        timeout=30,
-    ).stdout
-    if f"version {LEAN_VERSION.removeprefix('v')}" not in version:
-        raise RuntimeError("runtime Lean version mismatch")
+    _check_lean_version(source, 30)
     return repository
 
 
