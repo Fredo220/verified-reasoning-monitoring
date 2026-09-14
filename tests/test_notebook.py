@@ -73,7 +73,7 @@ def test_notebook_runs_the_study_under_python_312_when_colab_kernel_is_newer():
 def test_notebook_kernel_does_not_import_project_code_directly():
     for source in _code_cells():
         tree = ast.parse(source)
-        for node in tree.body:
+        for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 assert all(not alias.name.startswith("vrm") for alias in node.names)
             if isinstance(node, ast.ImportFrom):
