@@ -104,6 +104,13 @@ def test_notebook_rejects_dirty_source_checkouts():
     assert "source checkout is not clean" in source
 
 
+def test_notebook_removes_packaging_build_artifact_before_dirty_check():
+    source = _source()
+    cleanup = source.index("shutil.rmtree(PROJECT / 'build', ignore_errors=True)")
+    dirty_check = source.index("project_status_after_install =")
+    assert cleanup < dirty_check
+
+
 def test_notebook_does_not_redownload_the_unused_benchmark_archive():
     source = _source()
     assert "zenodo.org/api/records" not in source
