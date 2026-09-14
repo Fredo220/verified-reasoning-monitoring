@@ -442,7 +442,7 @@ class TestNativeLinuxTransport:
         command = lean._landrun_command(
             tmp_path / "landrun", tmp_path / "audit", ["python", "probe.py"]
         )
-        assert "--best-effort" in command
+        assert "--best-effort" not in command
         assert "--rwx" in command
         assert str(tmp_path / "audit") in command
         assert "--unrestricted-network" not in command

@@ -624,11 +624,11 @@ class LeanDojoBackend:
         if reasons:
             return result
         assert self.cache_dir is not None
+        with tempfile.TemporaryDirectory(prefix="vrm-landrun-probe-") as directory:
+            _check_landrun(self.landrun_sha256, Path(directory))
         _check_cache_root(self.cache_dir, self.cache_sha256, full_digest=True)
         self._tool_hashes = _check_comparator_source(self.comparator_root)
         _check_lean_version(self.cache_dir, _remaining(deadline))
-        with tempfile.TemporaryDirectory(prefix="vrm-landrun-probe-") as directory:
-            _check_landrun(self.landrun_sha256, Path(directory))
         checks.update(
             {
                 "native_linux": True,
@@ -911,7 +911,6 @@ def _landrun_command(landrun: Path, writable_root: Path, command: list[str]) -> 
     """Confine a subprocess to one writable tree and grant no network access."""
     return [
         str(landrun),
-        "--best-effort",
         "--ro",
         "/",
         "--rw",
@@ -981,7 +980,7 @@ def _check_landrun(expected_sha256: str, work_root: Path | None = None) -> Path:
         timeout=20,
     )
     if positive.returncode or not (allowed / "probe").is_file():
-        raise RuntimeError("Landrun positive confinement probe failed")
+        raise RuntimeError(f"Landrun positive confinement probe failed: {positive.stderr[-2048:]}")
     negative = subprocess.run(
         base + ["/bin/sh", "-c", f"printf escaped > {denied}"],
         capture_output=True,
