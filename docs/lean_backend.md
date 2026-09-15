@@ -137,13 +137,19 @@ The backend reports four distinct states:
 - `valid`: Comparator accepted and the exact audit receipt matched.
 - `invalid`: Comparator rejected the candidate and accepted the pinned original
   proof in the diagnostic check.
-- `timeout`: only the candidate Comparator process exceeded its candidate
-  deadline.
+- `timeout`: the verification allowance expired, including candidate work,
+  required reference diagnostics, or the host end-to-end deadline. No late
+  verdict can establish a within-budget validity label.
 - `infrastructure_error`: preflight, provenance, isolation, worker transport,
   source reconstruction, or diagnostic validation failed.
 
-Infrastructure deadlines and setup failures are never converted to candidate
-timeouts or negative labels. The final H1/H2 missingness policy is frozen only
+Setup/provenance failures and early transport failures remain infrastructure
+errors, not negative labels. Expiry of the actual verification allowance is a
+timeout. Candidate and reference diagnostic share one deadline, with no hidden
+worker grace. Preflight belongs outside timed execution. Cleanup may extend
+the return latency and is always measured and charged, never treated as free
+proof work. See `docs/verifier_timing_repair_2026-09-15.md`.
+The final H1/H2 missingness policy is frozen only
 after the development smoke, as required by the research plan.
 
 ## Real acceptance evidence

@@ -320,6 +320,63 @@ class TestSourceConstruction:
 
 
 class TestMockedTransport:
+    def test_candidate_and_diagnostic_share_remaining_time(self, monkeypatch, tmp_path):
+        now = [100.0]
+        calls = []
+        monkeypatch.setattr(lean.time, "monotonic", lambda: now[0])
+        def run(root, config, timeout_s, **kwargs):
+            calls.append(timeout_s)
+            now[0] += 3.0
+            return False, "rejected"
+        monkeypatch.setattr(lean, "_run_comparator", run)
+        lean._run_comparator_until(tmp_path, tmp_path / "candidate.json", 105.0)
+        lean._run_comparator_until(tmp_path, tmp_path / "diagnostic.json", 105.0)
+        assert calls == [5.0, 2.0]
+        accepted, output = lean._run_comparator_until(tmp_path, tmp_path / "late.json", 105.0)
+        assert not accepted and output.startswith("__VRM_CANDIDATE_TIMEOUT__")
+        assert calls == [5.0, 2.0]
+
+    def test_deadline_covers_the_entire_verification_call(self, backend, monkeypatch):
+        runtime_ready(monkeypatch, backend)
+        backend.preflight()
+        monkeypatch.setattr(lean.time, "monotonic", lambda: 100.0)
+        deadlines = []
+        monkeypatch.setattr(backend, "_request", lambda request, deadline:
+                            deadlines.append(deadline) or {"kind": "invalid"})
+        backend.verify(TASK, "by\n  skip", 5.0)
+        assert deadlines == [105.0]
+
+    @pytest.mark.parametrize("kind", ["valid", "invalid"])
+    def test_late_verdict_is_timeout_not_scientific_label(self, backend, monkeypatch, kind):
+        runtime_ready(monkeypatch, backend)
+        backend.preflight()
+        now = [100.0]
+        monkeypatch.setattr(lean.time, "monotonic", lambda: now[0])
+        def request(*args):
+            now[0] = 106.0
+            return {"kind": kind, "audit": backend._audit_receipt(TASK)}
+        monkeypatch.setattr(backend, "_request", request)
+        result = backend.verify(TASK, "by\n  skip", 5.0)
+        assert result["status"] == "timeout"
+        assert result["elapsed_s"] == 6.0
+
+    def test_elapsed_transport_deadline_is_timeout(self, backend, monkeypatch):
+        runtime_ready(monkeypatch, backend)
+        backend.preflight()
+        now = [100.0]
+        monkeypatch.setattr(lean.time, "monotonic", lambda: now[0])
+        def request(*args):
+            now[0] = 105.0
+            raise TimeoutError("deadline exhausted")
+        monkeypatch.setattr(backend, "_request", request)
+        assert backend.verify(TASK, "by\n  skip", 5.0)["status"] == "timeout"
+
+    def test_reference_diagnostic_timeout_is_not_invalid(self, backend, monkeypatch):
+        runtime_ready(monkeypatch, backend)
+        monkeypatch.setattr(backend, "_request", lambda *args:
+                            {"kind": "timeout", "phase": "diagnostic"})
+        assert backend.verify(TASK, "by\n  skip", 5.0)["status"] == "timeout"
+
     def test_preflight_advertises_audit_only_after_exact_probe(self, backend, monkeypatch):
         runtime_ready(monkeypatch, backend)
         result = backend.preflight()

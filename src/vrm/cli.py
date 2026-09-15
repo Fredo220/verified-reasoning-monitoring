@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 from vrm.config import load_protocol_amendment, load_study_config
+from vrm.core import canonical, digest
 from vrm.data import prepare, validate_prepared_artifacts
 from vrm.lean import LeanDojoBackend
 from vrm.runtime import HFRunner
@@ -53,6 +55,18 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="vrm")
     commands = parser.add_subparsers(dest="command", required=True)
 
+    auth_parser = commands.add_parser("auth-check")
+    auth_parser.add_argument("--config", default="configs/study.json")
+
+    handoff_parser = commands.add_parser("prepare-handoff")
+    handoff_parser.add_argument("--config", default="configs/study.json")
+    handoff_parser.add_argument("--prepared-dir", required=True)
+    handoff_parser.add_argument("--output", required=True)
+    inspect_parser = commands.add_parser("inspect-handoff")
+    inspect_parser.add_argument("--request", required=True)
+    inspect_parser.add_argument("--request-sha256", required=True)
+    inspect_parser.add_argument("--returns", required=True)
+
     prepare_parser = commands.add_parser("prepare")
     prepare_parser.add_argument("--config", default="configs/study.json")
     prepare_parser.add_argument("--benchmark-root", required=True)
@@ -75,6 +89,35 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.command == "prepare-handoff":
+        from vrm.handoff import development_request
+        from vrm.workflow import _write_bytes_atomic
+        config = load_study_config(args.config)
+        amendment = load_protocol_amendment(config["protocol_amendment"], args.config)
+        prepared = Path(args.prepared_dir)
+        validate_prepared_artifacts(prepared, amendment)
+        private = [row for row in _read_jsonl(prepared / "verifier_metadata.jsonl") if row.get("split") == "dev"]
+        request = development_request(_read_jsonl(prepared / "dev.jsonl"), private, config)
+        _write_bytes_atomic(Path(args.output), canonical(request))
+        print(json.dumps({"request_sha256": digest(request), "output": args.output,
+                          "private_metadata_exported": False, "generation_started": False}))
+        return 0
+    if args.command == "inspect-handoff":
+        from vrm.handoff import DevelopmentHandoff
+        request = json.loads(Path(args.request).read_text())
+        store = DevelopmentHandoff(args.returns, request, expected_sha256=args.request_sha256)
+        print(json.dumps(store.manifest(), sort_keys=True))
+        return 0
+    if args.command == "auth-check":
+        from vrm.auth import AccessError, check_hf_access
+        config = load_study_config(args.config)
+        try:
+            result = check_hf_access(config, token=os.environ.get("HF_TOKEN"))
+        except AccessError as exc:
+            print(json.dumps({"ready": False, "code": exc.code, "message": str(exc)}))
+            return 2
+        print(json.dumps(result, sort_keys=True))
+        return 0
     if args.command == "prepare":
         from transformers import AutoTokenizer
 

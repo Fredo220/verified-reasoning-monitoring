@@ -1,0 +1,306 @@
+diff --git a/src/vrm/engine.py b/src/vrm/engine.py
+index 072a170..6f4a636 100644
+--- a/src/vrm/engine.py
++++ b/src/vrm/engine.py
+@@ -47,16 +47,21 @@ def run_task(task, mode, generate, verify, score, *, budget_s=30.,
+             if remaining <= 0:
+                 break
+             before = clock()
+-            result = verify(task, candidate["text"], timeout_s=min(5., remaining))
++            verification_budget = min(5., remaining)
++            result = verify(task, candidate["text"], timeout_s=verification_budget)
+             if result["status"] not in ("valid", "invalid", "timeout", "infrastructure_error"):
+                 raise ValueError("unrecognized verifier result")
+-            within = clock() <= deadline
++            after = clock()
++            within = after <= deadline
++            within_verification = after - before <= verification_budget
+             receipts.append(dict(event="verification", candidate_index=index,
+-                                 result=result, elapsed_s=clock()-before, within_budget=within))
++                                 result=result, elapsed_s=after-before, within_budget=within,
++                                 verification_budget_s=verification_budget,
++                                 within_verification_budget=within_verification))
+             if result["status"] == "infrastructure_error":
+                 infrastructure_error = True
+                 break
+-            if result["status"] == "valid" and within:
++            if result["status"] == "valid" and within and within_verification:
+                 solved = True
+                 break
+         if solved or infrastructure_error:
+diff --git a/src/vrm/lean.py b/src/vrm/lean.py
+index d85f64a..a24391c 100644
+--- a/src/vrm/lean.py
++++ b/src/vrm/lean.py
+@@ -69,7 +69,6 @@ _VERIFIER_KEYS = (
+ _MAX_PROOF_BYTES = 64 * 1024
+ _MAX_OUTPUT_BYTES = 1024 * 1024
+ _PREFLIGHT_TIMEOUT_S = 180.0
+-_WORKER_SETUP_GRACE_S = 600.0
+ _COMPARATOR_ROOT = Path("/opt/vrm/comparator")
+ _COMPARATOR_BIN = _COMPARATOR_ROOT / ".lake/build/bin/comparator"
+ _LEAN4EXPORT_BIN = (
+@@ -462,8 +461,9 @@ class LeanDojoBackend:
+         return result
+ 
+     def verify(self, task: dict, proof: str, timeout_s: float) -> dict:
+-        """Verify one complete, unfenced proof beginning with ``by``."""
++        """Verify within one wall-clock budget; preload with preflight separately."""
+         started = time.monotonic()
++        deadline = None
+         status = "infrastructure_error"
+         details: dict = {
+             "proof_audit": "not_completed",
+@@ -485,6 +485,7 @@ class LeanDojoBackend:
+             if not isinstance(proof, str) or len(proof.encode("utf-8")) > _MAX_PROOF_BYTES:
+                 raise ValueError("proof must be at most 65536 bytes")
+             _complete_proof_body(proof)
++            deadline = started + float(timeout_s)
+ 
+             readiness = None if self._preflight_ready else self.preflight()
+             if readiness is not None and not readiness["ready"]:
+@@ -497,14 +498,16 @@ class LeanDojoBackend:
+                     "proof": proof,
+                     "candidate_timeout_s": float(timeout_s),
+                 }
+-                response = self._request(
+-                    request, time.monotonic() + float(timeout_s) + _WORKER_SETUP_GRACE_S
+-                )
++                _remaining(deadline)
++                response = self._request(request, deadline)
+                 if not isinstance(response, dict) or not isinstance(response.get("kind"), str):
+                     raise ValueError("malformed worker response")
+                 details["observation"] = response
+                 kind = response["kind"]
+-                if kind == "valid":
++                if time.monotonic() > deadline and kind in {"valid", "invalid", "timeout"}:
++                    status = "timeout"
++                    details["proof_audit"] = "verification_deadline"
++                elif kind == "valid":
+                     if response.get("audit") != self._audit_receipt(task):
+                         raise ValueError("worker returned a missing or mismatched audit receipt")
+                     status = "valid"
+@@ -512,14 +515,20 @@ class LeanDojoBackend:
+                 elif kind == "invalid":
+                     status = "invalid"
+                     details["proof_audit"] = "comparator_rejected"
+-                elif kind == "timeout" and response.get("phase", "candidate") == "candidate":
++                elif kind == "timeout" and response.get("phase", "candidate") in {
++                    "candidate", "diagnostic"
++                }:
+                     status = "timeout"
+                     details["proof_audit"] = "candidate_deadline"
+                 elif kind != "infrastructure_error":
+                     details["reasons"] = ["unrecognized_worker_result"]
+         except (TimeoutError, subprocess.TimeoutExpired) as exc:
+             details["error"] = str(exc)[:2048]
+-            details["reasons"] = ["infrastructure_deadline"]
++            if self._preflight_ready and deadline is not None and time.monotonic() >= deadline:
++                status = "timeout"
++                details["proof_audit"] = "verification_deadline"
++            else:
++                details["reasons"] = ["infrastructure_deadline"]
+         except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
+             details["error"] = str(exc)[:2048]
+         return {"status": status, "elapsed_s": time.monotonic() - started, "details": details}
+@@ -769,6 +778,7 @@ class LeanDojoBackend:
+                     self.cache_dir,
+                     self.comparator_root,
+                     Path(directory),
++                    deadline=deadline,
+                 )
+         name = "vrm-" + uuid.uuid4().hex
+         process: subprocess.Popen | None = None
+@@ -1327,13 +1337,24 @@ def _run_comparator(
+     return process.returncode == 0, output[-8192:]
+ 
+ 
++def _run_comparator_until(root: Path, config_path: Path, deadline: float, **kwargs):
++    """Candidate and reference diagnostic share the same deadline."""
++    remaining = deadline - time.monotonic()
++    if remaining <= 0:
++        return False, "__VRM_CANDIDATE_TIMEOUT__\nverification budget exhausted"
++    return _run_comparator(root, config_path, remaining, **kwargs)
++
++
+ def _execute_verification(
+     request: dict,
+     cache_root: Path,
+     comparator_root: Path,
+     work_root: Path,
++    *,
++    deadline: float | None = None,
+ ) -> dict:
+     """Run the native-Linux Comparator path after a successful preflight."""
++    started = time.monotonic()
+     _assert_worker_request(request)
+     task = _validated_task(request.get("task"))
+     if task["verifier"]["cache_sha256"] != request["cache_sha256"]:
+@@ -1349,6 +1370,7 @@ def _execute_verification(
+         or timeout_s <= 0
+     ):
+         raise ValueError("invalid proof or candidate timeout")
++    deadline = min(deadline, started + timeout_s) if deadline is not None else started + timeout_s
+     _complete_proof_body(proof)
+     _check_cache_root(cache_root, request["cache_sha256"], full_digest=False)
+     tool_hashes = _check_comparator_source(comparator_root)
+@@ -1377,10 +1399,10 @@ def _execute_verification(
+         task["full_name"],
+         cache_root=cache_root,
+     )
+-    accepted, output = _run_comparator(
++    accepted, output = _run_comparator_until(
+         candidate_root,
+         config_path,
+-        float(timeout_s),
++        deadline,
+         comparator=comparator,
+         landrun=landrun,
+         lean4export=lean4export,
+@@ -1406,14 +1428,16 @@ def _execute_verification(
+         task["full_name"],
+         cache_root=cache_root,
+     )
+-    diagnostic_ok, diagnostic_output = _run_comparator(
++    diagnostic_ok, diagnostic_output = _run_comparator_until(
+         diagnostic_root,
+         diagnostic_config,
+-        180.0,
++        deadline,
+         comparator=comparator,
+         landrun=landrun,
+         lean4export=lean4export,
+     )
++    if diagnostic_output.startswith("__VRM_CANDIDATE_TIMEOUT__"):
++        return {"kind": "timeout", "phase": "diagnostic", "output": diagnostic_output[-4096:]}
+     if not diagnostic_ok:
+         raise RuntimeError(
+             "candidate failed and pinned original did not pass Comparator: "
+@@ -1423,6 +1447,7 @@ def _execute_verification(
+ 
+ 
+ def _worker_verify(request: dict) -> dict:
++    started = time.monotonic()
+     _sandbox_check()
+     _assert_worker_request(request)
+     task = _validated_task(request.get("task"))
+@@ -1440,6 +1465,7 @@ def _worker_verify(request: dict) -> dict:
+         or timeout_s <= 0
+     ):
+         raise ValueError("invalid worker proof or candidate timeout")
++    deadline = started + float(timeout_s)
+ 
+     # Preflight binds the full cache before candidates run. The cache is mounted
+     # read-only, each target source is hashed below, and the run rehashes the full
+@@ -1455,7 +1481,7 @@ def _worker_verify(request: dict) -> dict:
+     candidate_config = _write_audit_project(
+         candidate_root, challenge, solution, task["full_name"]
+     )
+-    accepted, output = _run_comparator(candidate_root, candidate_config, float(timeout_s))
++    accepted, output = _run_comparator_until(candidate_root, candidate_config, deadline)
+     if output.startswith("__VRM_CANDIDATE_TIMEOUT__"):
+         return {"kind": "timeout", "phase": "candidate", "output": output[-4096:]}
+     if accepted:
+@@ -1466,9 +1492,11 @@ def _worker_verify(request: dict) -> dict:
+     diagnostic_config = _write_audit_project(
+         diagnostic_root, original, original, task["full_name"]
+     )
+-    diagnostic_ok, diagnostic_output = _run_comparator(
+-        diagnostic_root, diagnostic_config, 180.0
++    diagnostic_ok, diagnostic_output = _run_comparator_until(
++        diagnostic_root, diagnostic_config, deadline
+     )
++    if diagnostic_output.startswith("__VRM_CANDIDATE_TIMEOUT__"):
++        return {"kind": "timeout", "phase": "diagnostic", "output": diagnostic_output[-4096:]}
+     if not diagnostic_ok:
+         raise RuntimeError(
+             "candidate failed and pinned original did not pass Comparator: "
+diff --git a/tests/test_core.py b/tests/test_core.py
+index 8dbf311..981e419 100644
+--- a/tests/test_core.py
++++ b/tests/test_core.py
+@@ -95,6 +95,16 @@ def test_late_verification_never_counts_as_success():
+     assert result["receipts"][-1]["within_budget"] is False
+ 
+ 
++def test_per_check_deadline_is_enforced_even_with_task_time_remaining():
++    clock = Clock()
++    gen, verify, score, _ = components(clock, generation=1, verification=6)
++    result = run_task({"task_id": "a"}, "direct", gen, verify, score,
++                      budget_s=30, max_candidates=1, clock=clock)
++    assert not result["solved"]
++    assert result["elapsed_s"] == 7
++    assert result["receipts"][-1]["within_verification_budget"] is False
++
++
+ def test_ranked_checks_best_first_and_uses_same_candidate_seeds():
+     clock = Clock()
+     gen, verify, score, seeds = components(clock)
+diff --git a/tests/test_lean.py b/tests/test_lean.py
+index ea4ebde..5da6970 100644
+--- a/tests/test_lean.py
++++ b/tests/test_lean.py
+@@ -320,6 +320,63 @@ class TestSourceConstruction:
+ 
+ 
+ class TestMockedTransport:
++    def test_candidate_and_diagnostic_share_remaining_time(self, monkeypatch, tmp_path):
++        now = [100.0]
++        calls = []
++        monkeypatch.setattr(lean.time, "monotonic", lambda: now[0])
++        def run(root, config, timeout_s, **kwargs):
++            calls.append(timeout_s)
++            now[0] += 3.0
++            return False, "rejected"
++        monkeypatch.setattr(lean, "_run_comparator", run)
++        lean._run_comparator_until(tmp_path, tmp_path / "candidate.json", 105.0)
++        lean._run_comparator_until(tmp_path, tmp_path / "diagnostic.json", 105.0)
++        assert calls == [5.0, 2.0]
++        accepted, output = lean._run_comparator_until(tmp_path, tmp_path / "late.json", 105.0)
++        assert not accepted and output.startswith("__VRM_CANDIDATE_TIMEOUT__")
++        assert calls == [5.0, 2.0]
++
++    def test_deadline_covers_the_entire_verification_call(self, backend, monkeypatch):
++        runtime_ready(monkeypatch, backend)
++        backend.preflight()
++        monkeypatch.setattr(lean.time, "monotonic", lambda: 100.0)
++        deadlines = []
++        monkeypatch.setattr(backend, "_request", lambda request, deadline:
++                            deadlines.append(deadline) or {"kind": "invalid"})
++        backend.verify(TASK, "by\n  skip", 5.0)
++        assert deadlines == [105.0]
++
++    @pytest.mark.parametrize("kind", ["valid", "invalid"])
++    def test_late_verdict_is_timeout_not_scientific_label(self, backend, monkeypatch, kind):
++        runtime_ready(monkeypatch, backend)
++        backend.preflight()
++        now = [100.0]
++        monkeypatch.setattr(lean.time, "monotonic", lambda: now[0])
++        def request(*args):
++            now[0] = 106.0
++            return {"kind": kind, "audit": backend._audit_receipt(TASK)}
++        monkeypatch.setattr(backend, "_request", request)
++        result = backend.verify(TASK, "by\n  skip", 5.0)
++        assert result["status"] == "timeout"
++        assert result["elapsed_s"] == 6.0
++
++    def test_elapsed_transport_deadline_is_timeout(self, backend, monkeypatch):
++        runtime_ready(monkeypatch, backend)
++        backend.preflight()
++        now = [100.0]
++        monkeypatch.setattr(lean.time, "monotonic", lambda: now[0])
++        def request(*args):
++            now[0] = 105.0
++            raise TimeoutError("deadline exhausted")
++        monkeypatch.setattr(backend, "_request", request)
++        assert backend.verify(TASK, "by\n  skip", 5.0)["status"] == "timeout"
++
++    def test_reference_diagnostic_timeout_is_not_invalid(self, backend, monkeypatch):
++        runtime_ready(monkeypatch, backend)
++        monkeypatch.setattr(backend, "_request", lambda *args:
++                            {"kind": "timeout", "phase": "diagnostic"})
++        assert backend.verify(TASK, "by\n  skip", 5.0)["status"] == "timeout"
++
+     def test_preflight_advertises_audit_only_after_exact_probe(self, backend, monkeypatch):
+         runtime_ready(monkeypatch, backend)
+         result = backend.preflight()

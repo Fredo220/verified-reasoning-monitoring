@@ -44,6 +44,14 @@ def test_notebook_reads_hugging_face_token_from_colab_secrets_only():
     assert not re.search(r"hf_[A-Za-z0-9]{20,}", source)
 
 
+def test_notebook_clears_stale_token_and_uses_package_authentication():
+    source = _source()
+    assert source.index("os.environ.pop('HF_TOKEN', None)") < source.index('userdata.get("HF_TOKEN")')
+    assert "['read_colab_token']" in source
+    assert "'vrm.cli', 'auth-check'" in source
+    assert "auth_source.is_file()" in source
+
+
 def test_notebook_provisions_and_preflights_verifier_before_smoke():
     source = _source()
     provision = source.index("provision-verifier")

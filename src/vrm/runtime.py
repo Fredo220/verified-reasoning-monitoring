@@ -2,6 +2,7 @@
 
 import hashlib
 import importlib.metadata
+import os
 import platform
 import time
 from collections.abc import Mapping
@@ -93,13 +94,17 @@ class HFRunner:
             value = config[field]
             if len(value) != 40 or any(c not in "0123456789abcdef" for c in value):
                 raise ValueError(f"{field} must be an immutable commit")
+        token = False if local_files_only else os.environ.get("HF_TOKEN")
+        if not local_files_only:
+            from vrm.auth import check_hf_access
+            check_hf_access(config, token=token)
         self.tokenizer = AutoTokenizer.from_pretrained(
             config["model_id"], revision=config["tokenizer_revision"],
-            local_files_only=local_files_only, trust_remote_code=False)
+            local_files_only=local_files_only, trust_remote_code=False, token=token)
         self.model = AutoModelForCausalLM.from_pretrained(
             config["model_id"], revision=config["model_revision"],
             dtype=torch.float16, device_map={"": self.device},
-            local_files_only=local_files_only, trust_remote_code=False)
+            local_files_only=local_files_only, trust_remote_code=False, token=token)
         self.model.eval().requires_grad_(False)
         self.layers = self.model.model.layers
         self.identity = {**runtime_identity(), "model_id": config["model_id"],

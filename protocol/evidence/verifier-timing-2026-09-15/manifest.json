@@ -1,0 +1,13 @@
+{
+  "base_commit": "7e77fb2494e6450246bb78893ed95ad919820f21",
+  "scientific_outcome": false,
+  "experiment_started": false,
+  "budget_amendment_approved": false,
+  "files_sha256": {
+    "repair.patch": "8709208fc7912ac795a216ec2ca86021d3563ab09ffd35d9b8e009fb66889aa5",
+    "vrm-profile-baseline-20260915.json": "e43d0c568d7eac9a4da13c5fe892b32b87e6a85c0a8cbe5345307f22d7d27d31",
+    "vrm-profile-verifier.py": "bd84d6cbb26c650959e2067b9f651b0c26ff81dccc441c02804eb44f2a4e21ef",
+    "vrm-timing-controls-20260915.json": "d8002f3d76def786caf73ca369ce3f9a2b9ed953ef97e07bafede1fef534d10b",
+    "vrm-timing-controls.py": "1114b327c387f71c583190caadb9331617d05fdae849ae7ed47b7e10f20dd82c"
+  }
+}

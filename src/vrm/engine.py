@@ -47,16 +47,21 @@ def run_task(task, mode, generate, verify, score, *, budget_s=30.,
             if remaining <= 0:
                 break
             before = clock()
-            result = verify(task, candidate["text"], timeout_s=min(5., remaining))
+            verification_budget = min(5., remaining)
+            result = verify(task, candidate["text"], timeout_s=verification_budget)
             if result["status"] not in ("valid", "invalid", "timeout", "infrastructure_error"):
                 raise ValueError("unrecognized verifier result")
-            within = clock() <= deadline
+            after = clock()
+            within = after <= deadline
+            within_verification = after - before <= verification_budget
             receipts.append(dict(event="verification", candidate_index=index,
-                                 result=result, elapsed_s=clock()-before, within_budget=within))
+                                 result=result, elapsed_s=after-before, within_budget=within,
+                                 verification_budget_s=verification_budget,
+                                 within_verification_budget=within_verification))
             if result["status"] == "infrastructure_error":
                 infrastructure_error = True
                 break
-            if result["status"] == "valid" and within:
+            if result["status"] == "valid" and within and within_verification:
                 solved = True
                 break
         if solved or infrastructure_error:

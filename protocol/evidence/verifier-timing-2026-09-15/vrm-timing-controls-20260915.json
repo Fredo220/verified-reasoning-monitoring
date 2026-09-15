@@ -1,0 +1,225 @@
+{
+  "scientific_outcome": false,
+  "purpose": "infrastructure controls; CPU alternative is not an adopted runtime",
+  "source_sha256": "12731be1a36e0ebc6cf9c36e7a4d30ff5e35e1b029b04b7e00777d99e8f2a217",
+  "preflight": {
+    "runtime_ready": true,
+    "audit_ready": true,
+    "reasons": [],
+    "checks": {
+      "linux_daemon": true,
+      "resource_limits": true,
+      "seccomp_available": true,
+      "sandbox": true,
+      "seccomp_no_connect": true,
+      "cache": true,
+      "source_provenance": true,
+      "toolchain": true,
+      "landrun": true,
+      "proof_audit": true
+    },
+    "observation": {
+      "kind": "probe_ok",
+      "audit": {
+        "trusted_judge": "Comparator",
+        "execution_mode": "docker",
+        "benchmark_doi": "10.5281/zenodo.18815372",
+        "repo_url": "https://github.com/leanprover-community/mathlib4",
+        "repo_commit": "1bc7728a050fc18ca2683f614c531cd7050ff063",
+        "lean_dojo_version": "4.20.0",
+        "lean_dojo_commit": "3bbc4c02fb8a058b282c8d3982a02d6563f3b08a",
+        "lean_version": "v4.29.0-rc1",
+        "comparator_commit": "ae061f79cdf7af458a26348177cfbd62da0123f6",
+        "comparator_repo_url": "https://github.com/leanprover/comparator",
+        "comparator_patch_sha256": "02382151f52b32c7d66bb355974bc218cd73644f1557be11853b78499a8bee03",
+        "landrun_repo_url": "https://github.com/Zouuup/landrun",
+        "landrun_commit": "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4",
+        "lean4export_commit": "048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d",
+        "lean4checker_commit": "b7398199245524275543dec6113229c9bb4902e5",
+        "cache_sha256": "14f2b096ac58afa54b625ac64c281bdfc112f9f327b3c196df46bfccf5473fd1",
+        "landrun_sha256": "177fa7db952b2542135c373474c7c5263f8a0607e68fe22fa5fbcc4fae5a320b",
+        "container_image_digest": "sha256:0c1ed089532fdb118749ec6033e634282344766c923c57738f82ee07b62ce21c",
+        "container_platform": "linux/arm64",
+        "seccomp_profile_sha256": "85ea2ee4cfc4f957232ea300ee87890d4a56f44aeeb4a4ecd177e3eb778c5c1e",
+        "comparator_binary_sha256": "e57b70b2d80715b00349951c6d391321cfe7a822612c3012f33973b049a55580",
+        "lean4export_binary_sha256": "9a1d0c549791684485a3729f6958c5c1acd7add8651847ece27fab7f7e3c8662",
+        "allowed_axioms": [
+          "propext",
+          "Quot.sound",
+          "Classical.choice"
+        ],
+        "landrun_enforced": true,
+        "kernel_replay": true,
+        "cache_validation_policy": "full_digest_preflight_and_post_run; per_candidate_source_digest"
+      }
+    },
+    "ready": true,
+    "status": "ready",
+    "allowed_axioms": [
+      "propext",
+      "Quot.sound",
+      "Classical.choice"
+    ],
+    "elapsed_s": 48.03697675000876
+  },
+  "runs": [
+    {
+      "cpus": "1",
+      "case": "valid",
+      "timeout_s": 180,
+      "result": {
+        "status": "valid",
+        "elapsed_s": 53.79601195792202,
+        "details": {
+          "proof_audit": "comparator",
+          "allowed_axioms": [
+            "propext",
+            "Quot.sound",
+            "Classical.choice"
+          ],
+          "observation": {
+            "kind": "valid",
+            "audit": {
+              "trusted_judge": "Comparator",
+              "execution_mode": "docker",
+              "benchmark_doi": "10.5281/zenodo.18815372",
+              "repo_url": "https://github.com/leanprover-community/mathlib4",
+              "repo_commit": "1bc7728a050fc18ca2683f614c531cd7050ff063",
+              "lean_dojo_version": "4.20.0",
+              "lean_dojo_commit": "3bbc4c02fb8a058b282c8d3982a02d6563f3b08a",
+              "lean_version": "v4.29.0-rc1",
+              "comparator_commit": "ae061f79cdf7af458a26348177cfbd62da0123f6",
+              "comparator_repo_url": "https://github.com/leanprover/comparator",
+              "comparator_patch_sha256": "02382151f52b32c7d66bb355974bc218cd73644f1557be11853b78499a8bee03",
+              "landrun_repo_url": "https://github.com/Zouuup/landrun",
+              "landrun_commit": "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4",
+              "lean4export_commit": "048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d",
+              "lean4checker_commit": "b7398199245524275543dec6113229c9bb4902e5",
+              "cache_sha256": "14f2b096ac58afa54b625ac64c281bdfc112f9f327b3c196df46bfccf5473fd1",
+              "landrun_sha256": "177fa7db952b2542135c373474c7c5263f8a0607e68fe22fa5fbcc4fae5a320b",
+              "container_image_digest": "sha256:0c1ed089532fdb118749ec6033e634282344766c923c57738f82ee07b62ce21c",
+              "container_platform": "linux/arm64",
+              "seccomp_profile_sha256": "85ea2ee4cfc4f957232ea300ee87890d4a56f44aeeb4a4ecd177e3eb778c5c1e",
+              "comparator_binary_sha256": "e57b70b2d80715b00349951c6d391321cfe7a822612c3012f33973b049a55580",
+              "lean4export_binary_sha256": "9a1d0c549791684485a3729f6958c5c1acd7add8651847ece27fab7f7e3c8662",
+              "allowed_axioms": [
+                "propext",
+                "Quot.sound",
+                "Classical.choice"
+              ],
+              "landrun_enforced": true,
+              "kernel_replay": true,
+              "cache_validation_policy": "full_digest_preflight_and_post_run; per_candidate_source_digest",
+              "task_id": "fe10d46d5c1ce547ffc241d9e3aa59c036186565a151dd24902a686cac7df275",
+              "file_path": "Mathlib/NumberTheory/FactorisationProperties.lean",
+              "full_name": "Nat.abundant_twelve",
+              "source_sha256": "8ec61239cbba19b4784c2223e52bd98fd4caa7027d1041d12e417af2c852e1fa",
+              "trace_sha256": "84b06ccbd08f4ea537182f83c63d0ace46863acabcc35709382e37867e7908aa"
+            },
+            "output": "Building Challenge\n\u26a0 [997/998] Built Challenge (12s)\nwarning: Challenge.lean:96:8: declaration uses `sorry`\nBuild completed successfully (998 jobs).\nExporting #[Nat.abundant_twelve, propext, Quot.sound, Classical.choice, Nat.add, Nat.sub, Nat.mul, Nat.pow, Nat.gcd, Nat.div, Nat.mod, Nat.beq, Nat.ble, Nat.land, Nat.lor, Nat.xor, Nat.shiftLeft, Nat.shiftRight, String.ofList] from Challenge\nBuilding Solution\n\u2714 [997/998] Built Solution (4.6s)\nBuild completed successfully (998 jobs).\nExporting #[Nat.abundant_twelve, propext, Quot.sound, Classical.choice, Nat.add, Nat.sub, Nat.mul, Nat.pow, Nat.gcd, Nat.div, Nat.mod, Nat.beq, Nat.ble, Nat.land, Nat.lor, Nat.xor, Nat.shiftLeft, Nat.shiftRight, String.ofList] from Solution\nRunning Lean default kernel on solution.\nLean default kernel accepts the solution\nYour solution is okay!\n"
+          }
+        }
+      }
+    },
+    {
+      "cpus": "2",
+      "case": "valid",
+      "timeout_s": 180,
+      "result": {
+        "status": "valid",
+        "elapsed_s": 35.53930229193065,
+        "details": {
+          "proof_audit": "comparator",
+          "allowed_axioms": [
+            "propext",
+            "Quot.sound",
+            "Classical.choice"
+          ],
+          "observation": {
+            "kind": "valid",
+            "audit": {
+              "trusted_judge": "Comparator",
+              "execution_mode": "docker",
+              "benchmark_doi": "10.5281/zenodo.18815372",
+              "repo_url": "https://github.com/leanprover-community/mathlib4",
+              "repo_commit": "1bc7728a050fc18ca2683f614c531cd7050ff063",
+              "lean_dojo_version": "4.20.0",
+              "lean_dojo_commit": "3bbc4c02fb8a058b282c8d3982a02d6563f3b08a",
+              "lean_version": "v4.29.0-rc1",
+              "comparator_commit": "ae061f79cdf7af458a26348177cfbd62da0123f6",
+              "comparator_repo_url": "https://github.com/leanprover/comparator",
+              "comparator_patch_sha256": "02382151f52b32c7d66bb355974bc218cd73644f1557be11853b78499a8bee03",
+              "landrun_repo_url": "https://github.com/Zouuup/landrun",
+              "landrun_commit": "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4",
+              "lean4export_commit": "048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d",
+              "lean4checker_commit": "b7398199245524275543dec6113229c9bb4902e5",
+              "cache_sha256": "14f2b096ac58afa54b625ac64c281bdfc112f9f327b3c196df46bfccf5473fd1",
+              "landrun_sha256": "177fa7db952b2542135c373474c7c5263f8a0607e68fe22fa5fbcc4fae5a320b",
+              "container_image_digest": "sha256:0c1ed089532fdb118749ec6033e634282344766c923c57738f82ee07b62ce21c",
+              "container_platform": "linux/arm64",
+              "seccomp_profile_sha256": "85ea2ee4cfc4f957232ea300ee87890d4a56f44aeeb4a4ecd177e3eb778c5c1e",
+              "comparator_binary_sha256": "e57b70b2d80715b00349951c6d391321cfe7a822612c3012f33973b049a55580",
+              "lean4export_binary_sha256": "9a1d0c549791684485a3729f6958c5c1acd7add8651847ece27fab7f7e3c8662",
+              "allowed_axioms": [
+                "propext",
+                "Quot.sound",
+                "Classical.choice"
+              ],
+              "landrun_enforced": true,
+              "kernel_replay": true,
+              "cache_validation_policy": "full_digest_preflight_and_post_run; per_candidate_source_digest",
+              "task_id": "fe10d46d5c1ce547ffc241d9e3aa59c036186565a151dd24902a686cac7df275",
+              "file_path": "Mathlib/NumberTheory/FactorisationProperties.lean",
+              "full_name": "Nat.abundant_twelve",
+              "source_sha256": "8ec61239cbba19b4784c2223e52bd98fd4caa7027d1041d12e417af2c852e1fa",
+              "trace_sha256": "84b06ccbd08f4ea537182f83c63d0ace46863acabcc35709382e37867e7908aa"
+            },
+            "output": "Building Challenge\n\u26a0 [997/998] Built Challenge (5.6s)\nwarning: Challenge.lean:96:8: declaration uses `sorry`\nBuild completed successfully (998 jobs).\nExporting #[Nat.abundant_twelve, propext, Quot.sound, Classical.choice, Nat.add, Nat.sub, Nat.mul, Nat.pow, Nat.gcd, Nat.div, Nat.mod, Nat.beq, Nat.ble, Nat.land, Nat.lor, Nat.xor, Nat.shiftLeft, Nat.shiftRight, String.ofList] from Challenge\nBuilding Solution\n\u2714 [997/998] Built Solution (2.6s)\nBuild completed successfully (998 jobs).\nExporting #[Nat.abundant_twelve, propext, Quot.sound, Classical.choice, Nat.add, Nat.sub, Nat.mul, Nat.pow, Nat.gcd, Nat.div, Nat.mod, Nat.beq, Nat.ble, Nat.land, Nat.lor, Nat.xor, Nat.shiftLeft, Nat.shiftRight, String.ofList] from Solution\nRunning Lean default kernel on solution.\nLean default kernel accepts the solution\nYour solution is okay!\n"
+          }
+        }
+      }
+    },
+    {
+      "cpus": "1",
+      "case": "valid",
+      "timeout_s": 5,
+      "result": {
+        "status": "timeout",
+        "elapsed_s": 6.414612959022634,
+        "details": {
+          "proof_audit": "verification_deadline",
+          "allowed_axioms": [
+            "propext",
+            "Quot.sound",
+            "Classical.choice"
+          ],
+          "error": "infrastructure wall-clock deadline exceeded"
+        }
+      }
+    },
+    {
+      "cpus": "1",
+      "case": "invalid",
+      "timeout_s": 180,
+      "result": {
+        "status": "invalid",
+        "elapsed_s": 86.07932812499348,
+        "details": {
+          "proof_audit": "comparator_rejected",
+          "allowed_axioms": [
+            "propext",
+            "Quot.sound",
+            "Classical.choice"
+          ],
+          "observation": {
+            "kind": "invalid",
+            "diagnostic": "pinned_original_valid",
+            "output": "Building Challenge\n\u26a0 [997/998] Built Challenge (8.2s)\nwarning: Challenge.lean:96:8: declaration uses `sorry`\nBuild completed successfully (998 jobs).\nExporting #[Nat.abundant_twelve, propext, Quot.sound, Classical.choice, Nat.add, Nat.sub, Nat.mul, Nat.pow, Nat.gcd, Nat.div, Nat.mod, Nat.beq, Nat.ble, Nat.land, Nat.lor, Nat.xor, Nat.shiftLeft, Nat.shiftRight, String.ofList] from Challenge\nBuilding Solution\n\u2716 [997/998] Building Solution (7.1s)\ntrace: .> LEAN_PATH=/work/candidate/.vrm-deps/Cli/.lake/build/lib/lean:/work/candidate/.vrm-deps/batteries/.lake/build/lib/lean:/work/candidate/.vrm-deps/Qq/.lake/build/lib/lean:/work/candidate/.vrm-deps/aesop/.lake/build/lib/lean:/work/candidate/.vrm-deps/proofwidgets/.lake/build/lib/lean:/work/candidate/.vrm-deps/importGraph/.lake/build/lib/lean:/work/candidate/.vrm-deps/LeanSearchClient/.lake/build/lib/lean:/work/candidate/.vrm-deps/plausible/.lake/build/lib/lean:/work/candidate/.vrm-deps/mathlib/.lake/build/lib/lean:/work/candidate/.lake/build/lib/lean /opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lean /work/candidate/Solution.lean -o /work/candidate/.lake/build/lib/lean/Solution.olean -i /work/candidate/.lake/build/lib/lean/Solution.ilean -c /work/candidate/.lake/build/ir/Solution.c --setup /work/candidate/.lake/build/ir/Solution.setup.json --json\nerror: Solution.lean:97:2: Tactic `contradiction` failed\n\n\u22a2 Abundant 12\nerror: Lean exited with code 1\nSome required targets logged failures:\n- Solution\nerror: build failed\nuncaught exception: Child exited with 1\n"
+          }
+        }
+      }
+    }
+  ],
+  "post_cache_sha256": "14f2b096ac58afa54b625ac64c281bdfc112f9f327b3c196df46bfccf5473fd1",
+  "cache_unchanged": true
+}

@@ -1,0 +1,351 @@
+{
+  "scientific_outcome": false,
+  "purpose": "known-valid development infrastructure profiling",
+  "cpus": "1",
+  "preflight": {
+    "runtime_ready": true,
+    "audit_ready": true,
+    "reasons": [],
+    "checks": {
+      "linux_daemon": true,
+      "resource_limits": true,
+      "seccomp_available": true,
+      "sandbox": true,
+      "seccomp_no_connect": true,
+      "cache": true,
+      "source_provenance": true,
+      "toolchain": true,
+      "landrun": true,
+      "proof_audit": true
+    },
+    "observation": {
+      "kind": "probe_ok",
+      "audit": {
+        "trusted_judge": "Comparator",
+        "execution_mode": "docker",
+        "benchmark_doi": "10.5281/zenodo.18815372",
+        "repo_url": "https://github.com/leanprover-community/mathlib4",
+        "repo_commit": "1bc7728a050fc18ca2683f614c531cd7050ff063",
+        "lean_dojo_version": "4.20.0",
+        "lean_dojo_commit": "3bbc4c02fb8a058b282c8d3982a02d6563f3b08a",
+        "lean_version": "v4.29.0-rc1",
+        "comparator_commit": "ae061f79cdf7af458a26348177cfbd62da0123f6",
+        "comparator_repo_url": "https://github.com/leanprover/comparator",
+        "comparator_patch_sha256": "02382151f52b32c7d66bb355974bc218cd73644f1557be11853b78499a8bee03",
+        "landrun_repo_url": "https://github.com/Zouuup/landrun",
+        "landrun_commit": "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4",
+        "lean4export_commit": "048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d",
+        "lean4checker_commit": "b7398199245524275543dec6113229c9bb4902e5",
+        "cache_sha256": "14f2b096ac58afa54b625ac64c281bdfc112f9f327b3c196df46bfccf5473fd1",
+        "landrun_sha256": "177fa7db952b2542135c373474c7c5263f8a0607e68fe22fa5fbcc4fae5a320b",
+        "container_image_digest": "sha256:0c1ed089532fdb118749ec6033e634282344766c923c57738f82ee07b62ce21c",
+        "container_platform": "linux/arm64",
+        "seccomp_profile_sha256": "85ea2ee4cfc4f957232ea300ee87890d4a56f44aeeb4a4ecd177e3eb778c5c1e",
+        "comparator_binary_sha256": "e57b70b2d80715b00349951c6d391321cfe7a822612c3012f33973b049a55580",
+        "lean4export_binary_sha256": "9a1d0c549791684485a3729f6958c5c1acd7add8651847ece27fab7f7e3c8662",
+        "allowed_axioms": [
+          "propext",
+          "Quot.sound",
+          "Classical.choice"
+        ],
+        "landrun_enforced": true,
+        "kernel_replay": true,
+        "cache_validation_policy": "full_digest_preflight_and_post_run; per_candidate_source_digest"
+      }
+    },
+    "ready": true,
+    "status": "ready",
+    "allowed_axioms": [
+      "propext",
+      "Quot.sound",
+      "Classical.choice"
+    ],
+    "elapsed_s": 72.6926650000969
+  },
+  "result": {
+    "status": "valid",
+    "elapsed_s": 163.17096750007477,
+    "details": {
+      "proof_audit": "comparator",
+      "allowed_axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+      ],
+      "observation": {
+        "kind": "valid",
+        "audit": {
+          "trusted_judge": "Comparator",
+          "execution_mode": "docker",
+          "benchmark_doi": "10.5281/zenodo.18815372",
+          "repo_url": "https://github.com/leanprover-community/mathlib4",
+          "repo_commit": "1bc7728a050fc18ca2683f614c531cd7050ff063",
+          "lean_dojo_version": "4.20.0",
+          "lean_dojo_commit": "3bbc4c02fb8a058b282c8d3982a02d6563f3b08a",
+          "lean_version": "v4.29.0-rc1",
+          "comparator_commit": "ae061f79cdf7af458a26348177cfbd62da0123f6",
+          "comparator_repo_url": "https://github.com/leanprover/comparator",
+          "comparator_patch_sha256": "02382151f52b32c7d66bb355974bc218cd73644f1557be11853b78499a8bee03",
+          "landrun_repo_url": "https://github.com/Zouuup/landrun",
+          "landrun_commit": "811cfff51ceaf3d9843708aa6d22e9b84ccac8b4",
+          "lean4export_commit": "048394e1afeeb52b0fa27bcf3f1ade2ff0f0ab6d",
+          "lean4checker_commit": "b7398199245524275543dec6113229c9bb4902e5",
+          "cache_sha256": "14f2b096ac58afa54b625ac64c281bdfc112f9f327b3c196df46bfccf5473fd1",
+          "landrun_sha256": "177fa7db952b2542135c373474c7c5263f8a0607e68fe22fa5fbcc4fae5a320b",
+          "container_image_digest": "sha256:0c1ed089532fdb118749ec6033e634282344766c923c57738f82ee07b62ce21c",
+          "container_platform": "linux/arm64",
+          "seccomp_profile_sha256": "85ea2ee4cfc4f957232ea300ee87890d4a56f44aeeb4a4ecd177e3eb778c5c1e",
+          "comparator_binary_sha256": "e57b70b2d80715b00349951c6d391321cfe7a822612c3012f33973b049a55580",
+          "lean4export_binary_sha256": "9a1d0c549791684485a3729f6958c5c1acd7add8651847ece27fab7f7e3c8662",
+          "allowed_axioms": [
+            "propext",
+            "Quot.sound",
+            "Classical.choice"
+          ],
+          "landrun_enforced": true,
+          "kernel_replay": true,
+          "cache_validation_policy": "full_digest_preflight_and_post_run; per_candidate_source_digest",
+          "task_id": "fe10d46d5c1ce547ffc241d9e3aa59c036186565a151dd24902a686cac7df275",
+          "file_path": "Mathlib/NumberTheory/FactorisationProperties.lean",
+          "full_name": "Nat.abundant_twelve",
+          "source_sha256": "8ec61239cbba19b4784c2223e52bd98fd4caa7027d1041d12e417af2c852e1fa",
+          "trace_sha256": "84b06ccbd08f4ea537182f83c63d0ace46863acabcc35709382e37867e7908aa"
+        },
+        "output": "Building Challenge\n\u26a0 [997/998] Built Challenge (40s)\nwarning: Challenge.lean:96:8: declaration uses `sorry`\nBuild completed successfully (998 jobs).\nExporting #[Nat.abundant_twelve, propext, Quot.sound, Classical.choice, Nat.add, Nat.sub, Nat.mul, Nat.pow, Nat.gcd, Nat.div, Nat.mod, Nat.beq, Nat.ble, Nat.land, Nat.lor, Nat.xor, Nat.shiftLeft, Nat.shiftRight, String.ofList] from Challenge\nBuilding Solution\n\u2714 [997/998] Built Solution (17s)\nBuild completed successfully (998 jobs).\nExporting #[Nat.abundant_twelve, propext, Quot.sound, Classical.choice, Nat.add, Nat.sub, Nat.mul, Nat.pow, Nat.gcd, Nat.div, Nat.mod, Nat.beq, Nat.ble, Nat.land, Nat.lor, Nat.xor, Nat.shiftLeft, Nat.shiftRight, String.ofList] from Solution\nRunning Lean default kernel on solution.\nLean default kernel accepts the solution\nYour solution is okay!\n",
+        "profile": [
+          {
+            "phase": "_sandbox_check",
+            "start_s": 0.00036642199847847223,
+            "elapsed_s": 0.0009933490073308349
+          },
+          {
+            "phase": "_check_cache",
+            "start_s": 0.00140435500361491,
+            "elapsed_s": 1.0500099280034192
+          },
+          {
+            "phase": "_check_leandojo_install",
+            "start_s": 1.0514170329988701,
+            "elapsed_s": 0.02586031600367278
+          },
+          {
+            "phase": "_check_comparator_source",
+            "start_s": 1.0772788489994127,
+            "elapsed_s": 2.251595317007741
+          },
+          {
+            "phase": "_check_landrun",
+            "start_s": 3.3289135829982115,
+            "elapsed_s": 0.17336654700920917
+          },
+          {
+            "phase": "_target_sources",
+            "start_s": 3.5022827130014775,
+            "elapsed_s": 0.0008013869955902919
+          },
+          {
+            "phase": "_write_audit_project",
+            "start_s": 3.503087017001235,
+            "elapsed_s": 0.022301510005490854
+          },
+          {
+            "phase": "_run_comparator",
+            "start_s": 3.5253909019957064,
+            "elapsed_s": 155.77348367800005
+          }
+        ],
+        "process_samples": [
+          {
+            "at_s": 0.005830965004861355,
+            "commands": []
+          },
+          {
+            "at_s": 0.2083103760087397,
+            "commands": [
+              "git -c safe.directory=/cache -C /cache status --porcelain=v1 --untracked-files=no "
+            ]
+          },
+          {
+            "at_s": 1.0259705579956062,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lean --version "
+            ]
+          },
+          {
+            "at_s": 1.2318248550000135,
+            "commands": []
+          },
+          {
+            "at_s": 3.6733705990045564,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json "
+            ]
+          },
+          {
+            "at_s": 18.031445661006728,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json "
+            ]
+          },
+          {
+            "at_s": 18.23788150800101,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lean --print-prefix "
+            ]
+          },
+          {
+            "at_s": 18.442268073995365,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json "
+            ]
+          },
+          {
+            "at_s": 18.647720448003383,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lake build Challenge "
+            ]
+          },
+          {
+            "at_s": 26.115450468001654,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lean /work/candidate/Challenge.lean -o /work/candidate/.lake/build/lib/lean/Challenge.olean -i /work/candidate/.lake/build/lib/lean/Challenge.ilean -c /work/candidate/.lake/build/ir/Challenge.c --setup /work/candidate/.lake/build/ir/Challenge.",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lake build Challenge "
+            ]
+          },
+          {
+            "at_s": 65.92972401200677,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lake build Challenge "
+            ]
+          },
+          {
+            "at_s": 66.33432625200658,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json "
+            ]
+          },
+          {
+            "at_s": 66.7392463300057,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lean4export Challenge -- Nat.abundant_twelve propext Quot.sound Classical.choice Nat.add Nat.sub Nat.mul Nat.pow Nat.gcd Nat.div Nat.mod Nat.beq Nat.ble Nat.land Nat.lor Nat.xor Nat.shiftLeft Nat.shiftRight String.ofList "
+            ]
+          },
+          {
+            "at_s": 67.35434848199657,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lean --print-prefix ",
+              "lean4export Challenge -- Nat.abundant_twelve propext Quot.sound Classical.choice Nat.add Nat.sub Nat.mul Nat.pow Nat.gcd Nat.div Nat.mod Nat.beq Nat.ble Nat.land Nat.lor Nat.xor Nat.shiftLeft Nat.shiftRight String.ofList "
+            ]
+          },
+          {
+            "at_s": 67.55509207800787,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lean4export Challenge -- Nat.abundant_twelve propext Quot.sound Classical.choice Nat.add Nat.sub Nat.mul Nat.pow Nat.gcd Nat.div Nat.mod Nat.beq Nat.ble Nat.land Nat.lor Nat.xor Nat.shiftLeft Nat.shiftRight String.ofList "
+            ]
+          },
+          {
+            "at_s": 85.81074745100341,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json "
+            ]
+          },
+          {
+            "at_s": 86.23037996400672,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lake build Solution "
+            ]
+          },
+          {
+            "at_s": 95.02262239200354,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lean /work/candidate/Solution.lean -o /work/candidate/.lake/build/lib/lean/Solution.olean -i /work/candidate/.lake/build/lib/lean/Solution.ilean -c /work/candidate/.lake/build/ir/Solution.c --setup /work/candidate/.lake/build/ir/Solution.setup",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lake build Solution "
+            ]
+          },
+          {
+            "at_s": 111.53828926400456,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lake build Solution "
+            ]
+          },
+          {
+            "at_s": 112.35761981700489,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json "
+            ]
+          },
+          {
+            "at_s": 113.40492292700219,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lean4export Solution -- Nat.abundant_twelve propext Quot.sound Classical.choice Nat.add Nat.sub Nat.mul Nat.pow Nat.gcd Nat.div Nat.mod Nat.beq Nat.ble Nat.land Nat.lor Nat.xor Nat.shiftLeft Nat.shiftRight String.ofList "
+            ]
+          },
+          {
+            "at_s": 114.65307509200647,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lean --print-prefix ",
+              "lean4export Solution -- Nat.abundant_twelve propext Quot.sound Classical.choice Nat.add Nat.sub Nat.mul Nat.pow Nat.gcd Nat.div Nat.mod Nat.beq Nat.ble Nat.land Nat.lor Nat.xor Nat.shiftLeft Nat.shiftRight String.ofList "
+            ]
+          },
+          {
+            "at_s": 115.26877104600135,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "lean4export Solution -- Nat.abundant_twelve propext Quot.sound Classical.choice Nat.add Nat.sub Nat.mul Nat.pow Nat.gcd Nat.div Nat.mod Nat.beq Nat.ble Nat.land Nat.lor Nat.xor Nat.shiftLeft Nat.shiftRight String.ofList "
+            ]
+          },
+          {
+            "at_s": 157.11191189500096,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json ",
+              "/opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json "
+            ]
+          },
+          {
+            "at_s": 159.02590453700395,
+            "commands": [
+              "/opt/elan/toolchains/leanprover--lean4---v4.29.0-rc1/bin/lake -Kjobs=1 env /opt/vrm/comparator/.lake/build/bin/comparator /work/candidate/comparator.json "
+            ]
+          },
+          {
+            "at_s": 159.23010722799518,
+            "commands": []
+          }
+        ]
+      }
+    }
+  },
+  "source_sha256": "dcf8b206fb79983515367756b9418f1130627371d3f53a12662e0e6cb0755b28",
+  "instrumentation_sha256": "e19032552fc3422ef930379cb674662670945f33ebc2264e5b42fb66f899fb61",
+  "elapsed_s": 235.89144274999853
+}

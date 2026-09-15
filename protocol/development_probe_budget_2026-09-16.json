@@ -1,0 +1,19 @@
+{
+  "id": "vrm-one-candidate-development-2026-09-16",
+  "status": "approved_pre_outcome",
+  "scope": "one offline split-execution development integration candidate, not H1-H3",
+  "approval": "User: dann lass die restlichen 3 punkte auch machen; the immediately preceding proposal specified 120s verification and 180s active total for one candidate only.",
+  "candidate_selection": "first task in the unchanged 32-task development request, candidate index 0",
+  "request_sha256": "ca9a20453798dee9bff58482214f0f95046cf0149503aa3832e886aad5e81c12",
+  "verifier_limit_s": 120,
+  "active_limit_s": 180,
+  "accounting": "generation through completed local verification including transfer, waiting and cleanup; model loading reported separately; five seconds added for cross-host clock uncertainty",
+  "clock_guard_s": 5,
+  "gpu_allocation_limit_s": 3600,
+  "gpu_allocation_includes": "setup, loading, computation and idle time; charge toward existing total allowance",
+  "full_smoke_budget_amendment_approved": false,
+  "study_budgets_changed": false,
+  "yield_gate_changed": false,
+  "corpus_changed": false,
+  "resume": "reuse a complete matching generation; do not regenerate to obtain a favorable proof"
+}

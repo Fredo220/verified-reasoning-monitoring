@@ -95,6 +95,16 @@ def test_late_verification_never_counts_as_success():
     assert result["receipts"][-1]["within_budget"] is False
 
 
+def test_per_check_deadline_is_enforced_even_with_task_time_remaining():
+    clock = Clock()
+    gen, verify, score, _ = components(clock, generation=1, verification=6)
+    result = run_task({"task_id": "a"}, "direct", gen, verify, score,
+                      budget_s=30, max_candidates=1, clock=clock)
+    assert not result["solved"]
+    assert result["elapsed_s"] == 7
+    assert result["receipts"][-1]["within_verification_budget"] is False
+
+
 def test_ranked_checks_best_first_and_uses_same_candidate_seeds():
     clock = Clock()
     gen, verify, score, seeds = components(clock)

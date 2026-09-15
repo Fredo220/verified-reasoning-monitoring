@@ -1,6 +1,42 @@
 # Execution status
 
-**Updated:** 2026-09-14
+**Updated:** 2026-09-16
+
+## Latest readiness work
+
+Continuation: the owner approved the 120s-verifier/180s-total one-candidate
+development probe and commit/push to `codex/initial-study`, not main. The
+[split-execution command](colab_generation_handoff.md) is implemented and the
+local suite now reports **246 passed, 7 skipped**. Colab T4 and Secret access
+were observed working; the pinned-file authentication and model probe still
+require live execution. The original full-study and smoke budgets are unchanged.
+Earlier readiness details below describe the pre-approval snapshot.
+
+The [September 16 readiness report](development_readiness_2026-09-16.md)
+records the current state. Local authentication and public-only handoff tests
+pass; the full suite is **237 passed, 7 skipped**. A live local HF metadata
+check passed, but Colab Secret access and a Gemma forward pass remain untested.
+Three real development reference proofs took 25-52 seconds after a
+byte-identical mounted-file repair; the invalid control took about 65 seconds.
+Both the failed and repaired measurement runs are preserved.
+
+The five/30-second study budgets remain unchanged. A separate one-candidate
+development budget proposal awaits approval. Hash-bound offline handoff storage
+and export exist, but end-to-end split execution is not complete. No candidate,
+32-by-4 smoke, protected endpoint, commit or push was started in this repair.
+The older implementation and acceptance history below is retained as history,
+not a fresh claim that the experiment is ready.
+
+## September 15 repair-only pause
+
+The user has explicitly paused all experiment execution. The September 15
+[timing repair report](verifier_timing_repair_2026-09-15.md) supersedes the old
+next-step instruction to proceed directly to a model candidate. Time-accounting
+bugs in verification and the scheduler are fixed; **198 tests passed, 7 skipped**.
+Real known-fixture controls still do not fit five seconds. A measured budget
+proposal and explicit execution approval are required before any model run.
+The [repair-only goal](verifier_repair_goal.md) records this boundary. Existing
+five/30-second study limits remain unchanged pending an approved amendment.
 
 The study has not evaluated H1, H2, or H3. The trusted-verifier implementation
 gate is complete. The next empirical gate is one natural Gemma candidate,
@@ -50,7 +86,7 @@ followed by the registered 32-task by four-candidate development smoke.
   invalid, self-reference, `sorry`, unauthorized axiom, sandbox escape and
   disposable-cache mutation.
 
-Current local verification in the pinned Python 3.12 environment:
+September 14 local verification in the pinned Python 3.12 environment:
 
 ```text
 191 passed, 7 real tests skipped
@@ -89,7 +125,7 @@ candidate-yield or hypothesis result.
 Colab's kernel limitation is operational and not a scientific feasibility
 result. The notebook must not rerun the rejected native-verifier path.
 
-## Next gate
+## Historical next gate (superseded by the repair-only pause above)
 
 1. Keep the accepted local Docker verifier immutable and revalidate the
    addendum, acceptance record and preserved-corpus hashes.
