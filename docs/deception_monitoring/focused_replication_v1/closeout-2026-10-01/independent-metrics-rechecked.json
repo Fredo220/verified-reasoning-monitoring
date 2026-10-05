@@ -1,0 +1,627 @@
+{
+  "core_sha256": "c4f451309ba3122371176e142e76511bad4e209dcb1f36f999f2b10bca0a2ee8",
+  "label_freeze_sha256": "8d7b0417351b3e6ba6dd476ab51f08211bd37925ee80982f1280f48fb841d16a",
+  "layers": [
+    {
+      "layer": 1,
+      "pair_count_auroc": 0.5565613342111038,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 0,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 11,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 0,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 2,
+      "pair_count_auroc": 0.5289664252797893,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 4,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 9,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 2,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 3,
+      "pair_count_auroc": 0.619760807548826,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 12,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 8,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 0,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 4,
+      "pair_count_auroc": 0.630294053105113,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 97,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 13,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 24,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 5,
+      "pair_count_auroc": 0.597267939433838,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 174,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 21,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 58,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 6,
+      "pair_count_auroc": 0.728275181040158,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 155,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 21,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 32,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 7,
+      "pair_count_auroc": 0.7304696071977178,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 62,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 7,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 6,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 8,
+      "pair_count_auroc": 0.7543888523151197,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 106,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 12,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 11,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 9,
+      "pair_count_auroc": 0.7655804257186746,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 75,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 12,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 5,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 10,
+      "pair_count_auroc": 0.7255321483432082,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 95,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 11,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 11,
+      "pair_count_auroc": 0.8116633750274304,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 156,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 5,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 20,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 12,
+      "pair_count_auroc": 0.836899275839368,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 132,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 14,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 5,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 13,
+      "pair_count_auroc": 0.8506144393241167,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 152,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 7,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 13,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 14,
+      "pair_count_auroc": 0.8033794162826421,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 136,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 12,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 20,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 15,
+      "pair_count_auroc": 0.814790432301953,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 141,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 13,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 16,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 16,
+      "pair_count_auroc": 0.8097432521395656,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 148,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 8,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 20,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 17,
+      "pair_count_auroc": 0.8292187842879087,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 136,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 11,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 18,
+      "pair_count_auroc": 0.8323458415624314,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 144,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 12,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 13,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 19,
+      "pair_count_auroc": 0.8281764318630678,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 109,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 7,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 10,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 20,
+      "pair_count_auroc": 0.8321263989466754,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 99,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 12,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 7,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 21,
+      "pair_count_auroc": 0.8309194645600175,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 86,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 9,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 6,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 22,
+      "pair_count_auroc": 0.8333333333333334,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 94,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 6,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 23,
+      "pair_count_auroc": 0.8309194645600175,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 110,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 8,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 8,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 24,
+      "pair_count_auroc": 0.8085363177529076,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 104,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 8,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 25,
+      "pair_count_auroc": 0.8070002194426158,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 120,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 8,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 26,
+      "pair_count_auroc": 0.7989357033135835,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 104,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 8,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 8,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 27,
+      "pair_count_auroc": 0.750987491770902,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 109,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 13,
+          "denominator": 84
+        }
+      }
+    },
+    {
+      "layer": 28,
+      "pair_count_auroc": 0.6829054202326091,
+      "rates": {
+        "calibration_control": {
+          "alerts": 10,
+          "denominator": 1000
+        },
+        "deceptive_roleplay": {
+          "alerts": 64,
+          "denominator": 217
+        },
+        "evaluation_control": {
+          "alerts": 9,
+          "denominator": 1000
+        },
+        "honest_roleplay": {
+          "alerts": 9,
+          "denominator": 84
+        }
+      }
+    }
+  ],
+  "limitations": "Verifies point estimates and source quantiles, not independent label truth or bootstrap coverage",
+  "score_audit_sha256": "92485089da94eccbe589910d648b402076f6e85c10dc6dc71b61c3eb1494978d",
+  "script_sha256": "d4e7c56d0641c4bbba936e7fbe469272003b7f24b4ce766d62e1e708e4b93a49",
+  "status": "independent_pair_count_and_rate_recalculation_pass",
+  "threshold_freeze_sha256": "663cb6015eb7a12dbfbc06bb63cfb6a48d1d6ddbfd4c2c898344976fb6031829"
+}

@@ -1,0 +1,130 @@
+[
+  {
+    "finding_id":"F-RH-01","coverage_ids":["RH-01"],"domain":"scientific-paper",
+    "title":"Raw reward-hacking direction is a token-position difference of means",
+    "claim":"The paper defines a fixed-layer raw DoM vector from matched synthetic hack/honest spans and raw dot-product token scores; the listed synthetic design contains 54 conditions including four raw-only honest controls.",
+    "verdict":"supported","source_locators":[{"source_id":"RH-PAPER","locator":"Section 3.1, Equation 1; Appendix B, Tables 3-4"}],"evidence_level":"reported",
+    "evidence_summary":"Equation 1 averages selected positive and negative token positions. Table 3 lists 29 raw and 25 projected conditions, with honest failure/nonexecution controls and flipped-incentive counterparts.",
+    "trace":[{"source_id":"RH-PAPER","locator":"Section 3.1, Equation 1","observation":"v is the positive-token mean minus negative-token mean; s_t is its dot product with the selected-layer activation."},{"source_id":"RH-PAPER","locator":"Appendix B, Table 3","observation":"The four honest controls are raw-only; projected variants are not a second set of those controls."}],
+    "independent_verification":{"status":"verified","notes":"Hypatia independently reopened Equation 1 and Appendix B and verified token-position weighting, condition enumeration and raw-only controls."},
+    "limitations":["This verifies the published recipe, not detector performance.","Equal token weighting is not equal conversation weighting.","The full projection and span-extraction implementation remains unresolved in F-RH-06."],"unresolved_fact":null,"validation_plan":null,"execution_record":null
+  },
+  {
+    "finding_id":"F-RH-02","coverage_ids":["RH-02"],"domain":"scientific-paper",
+    "title":"Reward-hacking labels are contextual and consensus-selected",
+    "claim":"The reference judge uses three consensus passes of the same underlying model and excludes disagreements; the generic monitor is single-pass, and positives can include considered or attempted hacks, not only completed acts.",
+    "verdict":"supported","source_locators":[{"source_id":"RH-PAPER","locator":"Sections 2.1-2.2; Appendix C"}],"evidence_level":"reported",
+    "evidence_summary":"The tailored judge and generic monitor use GPT-5.6 Sol with high effort, but differ in rubric and consensus procedure. Quote repair may add calls. Operational labels do not establish subjective awareness or intent.",
+    "trace":[{"source_id":"RH-PAPER","locator":"Section 2.2, Ground Truth Construction and LLM Monitor","observation":"Unanimous labels are retained; nonconsensus passages are excluded; quoted support must match the transcript."},{"source_id":"RH-PAPER","locator":"Section 2.1 and Appendix C","observation":"Context determines whether an action violates the task; considered, attempted and enacted statuses are distinct."}],
+    "independent_verification":{"status":"verified","notes":"Hypatia checked the judge procedure and rubrics, including the additional quote-repair-call qualification."},
+    "limitations":["Three model passes are not three independent human raters.","Excluding disputed cases changes the evaluated population.","Wrong code or task failure alone is not a reward-hacking label."],"unresolved_fact":null,"validation_plan":null,"execution_record":null
+  },
+  {
+    "finding_id":"F-RH-03","coverage_ids":["RH-03"],"domain":"scientific-paper",
+    "title":"Published evaluation excludes probe-selection rollouts",
+    "claim":"Section 4.1 selects probes using separate SWE-bench and DeepSWE rollouts, excludes those samples from evaluation, and compares detection at a generic-monitor-matched false-positive rate.",
+    "verdict":"supported","source_locators":[{"source_id":"RH-PAPER","locator":"Section 4.1; Figure 8"}],"evidence_level":"reported",
+    "evidence_summary":"The paper identifies selection pools of 250 SWE-bench and 280 DeepSWE rollouts. This supports a stated separation between selection and evaluation, not independent verification of the underlying sample manifests.",
+    "trace":[{"source_id":"RH-PAPER","locator":"Section 4.1","observation":"Highest-AUROC probe selection is described using the separate rollout pools."},{"source_id":"RH-PAPER","locator":"Figure 8 and accompanying text","observation":"Selection rollouts are excluded and the comparison uses a monitor-FPR-matched operating point."}],
+    "independent_verification":{"status":"verified","notes":"Hypatia independently checked selection counts, exclusion statement and matched-FPR description; it did not verify row-level IDs."},
+    "limitations":["The exact layer search and calibration split are not fully specified.","Published gains are environment-dependent, not universal superiority over text monitors.","Headline performance has not been recalculated."],"unresolved_fact":null,"validation_plan":null,"execution_record":null
+  },
+  {
+    "finding_id":"F-RH-04","coverage_ids":["RH-04"],"domain":"scientific-paper",
+    "title":"Continuation association is not demonstrated prevention",
+    "claim":"The section 4.2 resampling experiment tests association between selected high probe scores and later hacking attempts; it does not evaluate a policy that prevents hacking.",
+    "verdict":"supported","source_locators":[{"source_id":"RH-PAPER","locator":"Section 4.2; Figure 10"}],"evidence_level":"reported",
+    "evidence_summary":"Eligible top-decile passages are truncated near probe peaks and resampled, with length/relative-position-matched controls. Figure 10 measures attempted hacks. No mitigation policy's success is measured there.",
+    "trace":[{"source_id":"RH-PAPER","locator":"Section 4.2","observation":"The study constructs high-score prefixes and matched controls for continuation sampling."},{"source_id":"RH-PAPER","locator":"Figure 10","observation":"The endpoint concerns attempted reward hacks following resampling, not prevented failures."}],
+    "independent_verification":{"status":"verified","notes":"Hypatia verified the resampling procedure and the attempted-hack endpoint and found no prevention test in this experiment."},
+    "limitations":["Selected prefixes are not an unbiased test of all live warnings.","Detection, prospective prediction and effective intervention require different evaluations.","Steering demonstrations elsewhere in the paper are not evidence of reduced hacking."],"unresolved_fact":null,"validation_plan":null,"execution_record":null
+  },
+  {
+    "finding_id":"F-RH-05","coverage_ids":["RH-05"],"domain":"scientific-paper",
+    "title":"Non-SWE discovery has a held-out check but no initial general ground truth",
+    "claim":"Non-SWE probe firing initially lacks original behavior labels; the paper subsequently tests probe-discovered rubrics on held-out examples with matched controls, supporting targeted discovery rather than general accuracy from firing rates.",
+    "verdict":"supported","source_locators":[{"source_id":"RH-PAPER","locator":"Section 5; Figure 14"}],"evidence_level":"reported",
+    "evidence_summary":"Probe selection by high firing and agreement with a generic monitor is exploratory. A separate judge and held-out rubric analysis add evidence; it would be incorrect to describe this branch as only qualitative.",
+    "trace":[{"source_id":"RH-PAPER","locator":"Section 5, non-SWE firing analysis","observation":"The initial environments have no original ground-truth hack labels and use SWE-calibrated probes."},{"source_id":"RH-PAPER","locator":"Section 5, rubric discovery and validation","observation":"Probe-hit review generates hypotheses that are checked on held-out data against matched controls."}],
+    "independent_verification":{"status":"verified","notes":"Hypatia verified both the missing initial labels and the later quantitative held-out rubric check."},
+    "limitations":["Judge agreement is not independent human truth.","Highest firing is a selection criterion, not AUROC.","Raw-dot versus cosine-scoring details remain unresolved."],"unresolved_fact":null,"validation_plan":null,"execution_record":null
+  },
+  {
+    "finding_id":"F-RH-06","coverage_ids":["RH-06"],"domain":"scientific-paper",
+    "title":"Exact reward-hacking reproduction is not currently assessable",
+    "claim":"The inspected materials are sufficient to identify the raw DoM method but insufficient to reconstruct and independently reproduce every published extraction, projection, calibration and performance result.",
+    "verdict":"not_assessable","source_locators":[{"source_id":"RH-PAPER","locator":"Section 3.1; Appendix B; Figure 14"},{"source_id":"RH-RELEASE-SEARCH","locator":"Bounded paper-link and release search on 2026-09-30"}],"evidence_level":"reported",
+    "evidence_summary":"No attributable author release was located in the bounded search. Required implementation and row-level material remains unlocated; this is not proof of its nonexistence.",
+    "trace":[{"source_id":"RH-PAPER","locator":"Appendix B, projected conditions","observation":"Conditions are enumerated, but the exact projection transformation is not specified sufficiently."},{"source_id":"RH-PAPER","locator":"Equation 1 versus Figure 14","observation":"The raw-dot recipe and cosine-similarity threshold axis require reconciliation."},{"source_id":"RH-RELEASE-SEARCH","locator":"Inspected paper links and focused searches","observation":"An attributable runnable release or exact artifact manifest was not identified."}],
+    "independent_verification":{"status":"verified","notes":"Hypatia independently checked the missing specifications and performed a bounded release search, noting author-site access failures."},
+    "limitations":["Search coverage is bounded.","No performance was rerun.","A self-chosen projection would be an adaptation, not a faithful reconstruction."],
+    "unresolved_fact":"Exact span masks, projection, score normalization, hook/indexing, selection/calibration IDs, runtime identities and row-level results.",
+    "validation_plan":"Obtain an attributable immutable artifact bundle or author clarification. Reconcile equations and scoring, then reconstruct one raw condition before attempting projected variants or metric recomputation.","execution_record":null
+  },
+  {
+    "finding_id":"F-DE-01","coverage_ids":["DE-01"],"domain":"technical-artifact",
+    "title":"Released deception probe is standardized L2 logistic regression",
+    "claim":"The pinned instructed-pairs configuration uses layer index 22, training-only feature scaling and logistic regression with C=0.1, random_state=42 and no fitted intercept; scoring reuses the affine transform and averages token scores by response.",
+    "verdict":"supported","source_locators":[{"source_id":"DE-DETECTOR","locator":"LogisticRegressionDetector.fit, line 347; get_score_tensor"},{"source_id":"DE-CONFIG","locator":"detect_layers, reg_coeff, normalize_acts, train_on_policy, eval_on_policy"},{"source_id":"DE-SCORES","locator":"Response score aggregation"}],"evidence_level":"reported",
+    "evidence_summary":"Source and cfg jointly resolve the executable fitting settings. The paper describes L2 lambda=10; the code maps reg_coeff=10 to C=1/reg_coeff. The score is not automatically a calibrated probability.",
+    "trace":[{"source_id":"DE-DETECTOR","locator":"LogisticRegressionDetector.fit","observation":"StandardScaler fits X from training activations; LogisticRegression uses C=1/reg_coeff and fit_intercept=False."},{"source_id":"DE-CONFIG","locator":"reg_coeff and on-policy fields","observation":"reg_coeff is 10, training is off-policy and evaluation on-policy."},{"source_id":"DE-PAPER","locator":"Section 3.1","observation":"Published method averages real-valued token scores for each response."}],
+    "independent_verification":{"status":"verified","notes":"Plato independently checked the pinned estimator, cfg and paper scoring description."},
+    "limitations":["Layer index 22 must be mapped to the model's actual hidden-state convention.","This is neither a full Three-Reader nor an SAE-based primary detector.","No historical checkpoint was executed or independently authenticated."],"unresolved_fact":null,"validation_plan":null,"execution_record":null
+  },
+  {
+    "finding_id":"F-DE-02","coverage_ids":["DE-02"],"domain":"technical-artifact",
+    "title":"Five-token and five-word masks are not equivalent",
+    "claim":"The paper's last-five-token exclusion and the pinned released training-data split implement the same token boundary.",
+    "verdict":"contradicted","source_locators":[{"source_id":"DE-PAPER","locator":"Section 3.2.1, Instructed-Pairs"},{"source_id":"DE-TRAINING-DATA","locator":"_split_statement, lines 95-104; _get_prefixed_dialogues, lines 119-121"}],"evidence_level":"derived",
+    "evidence_summary":"The paper says tokens; the code splits on spaces and masks the final five resulting fields, ordinarily words. Word and tokenizer-token boundaries are not identical in general.",
+    "trace":[{"source_id":"DE-PAPER","locator":"Section 3.2.1","observation":"The described excluded tail is five tokens."},{"source_id":"DE-TRAINING-DATA","locator":"_split_statement","observation":"statement.split(' ') is partitioned with [:-5] and [-5:]."},{"source_id":"DE-TRAINING-DATA","locator":"_get_prefixed_dialogues","observation":"The prefix is detect=True; the suffix remains in the input but is detect=False."}],
+    "independent_verification":{"status":"verified","notes":"Plato independently compared the exact paper statement with the pinned split and mask code."},
+    "limitations":["This discrepancy does not establish that the published performance is invalid.","A code-faithful versus prose-faithful replication must state which mask it uses.","No masked-token counts were independently recalculated."],"unresolved_fact":null,"validation_plan":null,"execution_record":null
+  },
+  {
+    "finding_id":"F-DE-03","coverage_ids":["DE-03"],"domain":"technical-artifact",
+    "title":"One-percent ordinary-chat calibration is not one-percent scenario FPR",
+    "claim":"The published Alpaca-control 1% threshold guarantees approximately 1% false positives among honest responses in each deception-related evaluation scenario.",
+    "verdict":"contradicted","source_locators":[{"source_id":"DE-THRESHOLD","locator":"prompt_score_threshold, lines 77-86; positive_rate, line 116"},{"source_id":"DE-POSTPROCESS","locator":"get_results_dataframe, lines 107-111"},{"source_id":"DE-RESULTS","locator":"Lines 4-7, fpr 1.0%"}],"evidence_level":"reported",
+    "evidence_summary":"The threshold is the ordinary-chat control quantile. The reported example CSV gives scenario-honest FPRs of 0.25, 0.7832586169242859, 0.5 and 0.5009784698486328 at that threshold.",
+    "trace":[{"source_id":"DE-THRESHOLD","locator":"PromptScorer initialization and prompt_score_threshold","observation":"The default control population is alpaca__plain; thresholds use the control 1-FPR quantile."},{"source_id":"DE-POSTPROCESS","locator":"get_results_dataframe","observation":"Honest scenario positive rates are calculated separately at the same control threshold."},{"source_id":"DE-RESULTS","locator":"Roleplaying, insider report, insider confirmation, sandbagging rows","observation":"The corresponding fpr 1.0% values are 0.25, 0.7832586169242859, 0.5 and 0.5009784698486328."}],
+    "independent_verification":{"status":"verified","notes":"Plato independently traced the threshold population, strict comparison, per-label aggregation and the four CSV values."},
+    "limitations":["These are author-published table values, not independently recomputed metrics.","They refer to the pinned example run, not every possible detector.","Strong within-scenario AUROC can coexist with a poor transferred operating threshold."],"unresolved_fact":null,"validation_plan":null,"execution_record":null
+  },
+  {
+    "finding_id":"F-DE-04","coverage_ids":["DE-04"],"domain":"scientific-paper",
+    "title":"Instruction-condition labels are not observed strategic intent",
+    "claim":"The inspected training and evaluation labels provide a fully objective, context-independent ground truth for strategic deception.",
+    "verdict":"partially_supported","source_locators":[{"source_id":"DE-TRAINING-DATA","locator":"_get_dialogues, lines 72-93"},{"source_id":"DE-PAPER","locator":"Sections 3.2, 4.1.2 and 5.2; Appendices A, E and G"}],"evidence_level":"reported",
+    "evidence_summary":"The code assigns training labels by honest/dishonest directive while using the same fact prefix. Evaluation separately uses scenario-specific labels on generated responses. Ambiguity, confusion, context confounds and label uncertainty prevent the stronger interpretation.",
+    "trace":[{"source_id":"DE-TRAINING-DATA","locator":"_get_dialogues","observation":"Honest and dishonest conditions are interleaved and labeled by condition, not by newly observed falsehood."},{"source_id":"DE-PAPER","locator":"Sections 3.2.2, 4.1.2 and 5.2","observation":"Evaluation uses scenario grading; ambiguity exclusions and failure examples limit the interpretation."}],
+    "independent_verification":{"status":"verified","notes":"Plato independently checked condition labels and identical-prefix construction. The parent read evaluation/limitations; no independent row-level strategic-intent relabeling was performed."},
+    "limitations":["Honest confession or discussion of deception can activate the probe.","A false or confused answer is not automatically a strategic lie.","Removing ambiguous cases can simplify the evaluated population."],
+    "unresolved_fact":"Reliability of each released behavior label and whether ambiguous or mistaken responses change deployment performance.",
+    "validation_plan":"Audit a preselected sample including ambiguous and honest same-context examples against full transcripts; publish disagreements and label sensitivity before using labels as an objective deployment standard.","execution_record":null
+  },
+  {
+    "finding_id":"F-DE-05","coverage_ids":["DE-05"],"domain":"technical-artifact",
+    "title":"Available code is not an independently reproduced historical run",
+    "claim":"The inspected public repository establishes exact historical checkpoint provenance, reproducible metrics and permission to redistribute all upstream implementation and datasets.",
+    "verdict":"not_assessable","source_locators":[{"source_id":"DE-CODE","locator":"Pinned source and example_results/instructed_pairs"},{"source_id":"DE-REUSE","locator":"Pinned repository tree, README and pyproject.toml"}],"evidence_level":"reported",
+    "evidence_summary":"The repository provides useful code, config and results, but no model run or score reaggregation was performed. No LICENSE file or explicit reuse grant was identified in the inspected tree; historical checkpoint/environment identity was not independently verified.",
+    "trace":[{"source_id":"DE-CODE","locator":"Pinned source/config/results","observation":"Readable artifacts exist; reading them is not a replayed experiment."},{"source_id":"DE-REUSE","locator":"Repository tree and pyproject.toml","observation":"The inspected material did not resolve redistribution permissions."}],
+    "independent_verification":{"status":"not_verified","notes":"Plato explicitly left historical checkpoint provenance and independent metric recomputation unverified. Reuse permissions are a separate unresolved source question."},
+    "limitations":["No legal determination is made.","Public visibility alone is not a reuse grant.","No pickle or upstream checkpoint was loaded."],
+    "unresolved_fact":"Artifact provenance, complete pinned environment, row-level metric agreement, and applicable code/data reuse permissions.",
+    "validation_plan":"First resolve license/provenance from authoritative artifacts. Then independently aggregate published score JSONs without loading checkpoints; only afterward consider an authorized isolated empirical replay.","execution_record":null
+  },
+  {
+    "finding_id":"F-X-01","coverage_ids":["X-01"],"domain":"scientific-paper",
+    "title":"Transfer to our small code model remains a hypothesis",
+    "claim":"The two source methods will detect harmful misreporting or strategic deception on our pinned Qwen-1.5B model and improve code reliability.",
+    "verdict":"needs_validation","source_locators":[{"source_id":"LOCAL-CONFIG","locator":"Pinned model and tokenizer fields"},{"source_id":"RH-PAPER","locator":"Sections 3.1 and 8"},{"source_id":"DE-PAPER","locator":"Sections 3.1 and 5.2"}],"evidence_level":"derived",
+    "evidence_summary":"The source methods suggest low-cost fixed-layer monitors, but their original behavior distributions, models and labels differ from our task. New detection, forecasting and intervention evidence is required separately.",
+    "trace":[{"source_id":"LOCAL-CONFIG","locator":"model_id and model_revision","observation":"Existing local capture configuration identifies Qwen2.5-Coder-1.5B-Instruct, not an original paper model."},{"source_id":"RH-PAPER","locator":"Section 3.1","observation":"DoM requires activations obtained from the model being monitored."},{"source_id":"DE-PAPER","locator":"Section 3.1 and limitations","observation":"The published detector is fitted to Llama-3.3-70B-Instruct; transfer to our model was not tested."}],
+    "independent_verification":{"status":"not_available","notes":"No small-model pilot was authorized and executed during this source-only audit."},
+    "limitations":["Original probe coordinates cannot simply be copied between model representation spaces.","Detecting a completed false report does not establish warning before the report or improved final code.","Free-T4 feasibility and GPU availability are not verified."],
+    "unresolved_fact":"Whether a newly fitted model-specific probe generalizes beyond wording/directive cues and contributes prospective reliability gains.",
+    "validation_plan":"Run the two separate small-model adaptations in REPRODUCTION-PLAN.md, in order, with matched honest controls and held-out groups. If detection is credible, preregister prefix prediction and then a fixed intervention comparison; otherwise report the limitation without changing the closed code study.","execution_record":null
+  }
+]

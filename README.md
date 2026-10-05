@@ -1,189 +1,122 @@
 # Verified Reasoning Monitoring
 
-> "What if only a machine can defeat another machine?"
->
-> Alan Turing, as portrayed in *The Imitation Game* (2014)
+**An AI says, "The tests passed." Can we tell when that claim is unsupported?**
 
-The line comes from the film rather than the historical record, but the question behind it has become increasingly relevant. Modern language models perform billions of internal computations for every answer. Researchers cannot inspect each of them by hand.
+The tests may have failed, or never run at all. The sentence can sound just as convincing either way.
 
-This project asks a narrower version of that question:
+We compared **18 predefined monitoring variants** on **Llama-3.2-3B-Instruct**. One method stood out: **an all-layer linear classifier that averages its scores across the final report.** Inspired by a range of monitoring strategies, we investigated and tested these variants ourselves to identify the most promising method for this benchmark.
 
-**Can a machine help us monitor another machine, and can that monitoring produce more externally verified solutions within the same end-to-end time budget?**
+**It caught every false success report, with no false alarms, on both small, scripted held-out tests, including when the wording changed.**
 
-Research is in progress. No results from this study are available yet.
+## The successful method
 
-## The problem
+The classifier reads all 28 captured layer states and combines their information into one report-level score. The base language model stays unchanged.
 
-A language model can produce several plausible solutions to the same problem. Some are correct; others only look convincing.
+| Held-out test | False reports detected | Honest reports wrongly flagged |
+|---|---:|---:|
+| Ordinary wording | **32/32** | **0/64** |
+| Changed wording | **32/32** | **0/64** |
 
-We can check every attempt, but generation, monitoring and verification all consume time. Under a fixed budget, checking an unpromising attempt may prevent us from reaching a valid one.
+**The encouraging part is consistency.** The same learned weights and frozen alert threshold worked under both wordings. Training and validation fixed these settings before test results were opened. Honest reports of failure and nonexecution stayed unflagged, so the monitor was not simply reacting to a task going wrong.
 
-The model's internal activations may contain information that is not obvious from its final text or token confidence. If a small monitor can read that information, it might help us decide which attempt should be checked first.
+Each test contained 96 supplied reports in 16 matched identifier groups, using one task template. The model read these reports rather than generating them. These are controlled detection results, not evidence of dishonest intent or a zero deployment error rate. This scripted-report study is separate from the earlier 371-response roleplay benchmark documented below.
 
-That is the practical idea behind this study:
+A direct checker of the verification records matched the result. Our internal monitor matched that explicit consistency check using the model's activations. The next step is to evaluate this classifier on naturally generated reports across different tasks.
 
-~~~text
-internal activations -> candidate ranking -> external verification
-~~~
+[Full results, comparisons and audit](docs/deception_monitoring/false_reporting_dom_v1/RESULTS.md)
 
-The final judge is not the monitor. It is [Lean 4](https://lean-lang.org/), a formal proof checker.
+<details>
+<summary>How the other methods compared on this same task</summary>
 
-## Where the question came from
+Single-layer, window-trained and weighted-window classifiers with mean aggregation also caught all 32 false reports without false alarms on changed wording. On ordinary wording, they produced 5, 7 and 8 false alarms, respectively, while the all-layer plain classifier produced none. It was the strongest observed internal method across both tests, not a proven universal winner.
 
-My earlier project, [Answerability x Familiarity](https://github.com/Fredo220/Answerability-x-Familarity-), investigated whether a language model distinguishes familiarity with an entity from having enough evidence to answer a particular question.
+Other readouts and direction-based probes were less consistent. Raw difference of means ranked the changed-wording reports perfectly but missed all 32 false reports at its frozen alert threshold. This illustrates why we measured actual alerts as well as ranking. All 18 registered variants and their results remain available.
 
-The predicted behavioral effect was not supported. However, the model's internal activations contained information about whether an answer was available in the prompt. The subsequent causal evidence was mixed.
+![Detection and false alarms across all registered methods](docs/deception_monitoring/false_reporting_dom_v1/figures/comparison.png)
 
-This raised a more useful question. Even if internal information does not appear reliably in the model's behavior, can it still help us make better decisions?
+[All method and test results as CSV](docs/deception_monitoring/false_reporting_dom_v1/figures/comparison.csv)
 
-During that work, I encountered Anthropic's [Constitutional Classifiers research](https://arxiv.org/abs/2501.18837), which established a defense based on input and output classifiers. Its follow-up, [Constitutional Classifiers++](https://arxiv.org/abs/2601.04603), adds efficient linear probes over internal activations and combines them with external classifiers in a two-stage cascade.
+</details>
 
-This project transfers that general monitoring principle to a different and externally verifiable setting. Instead of detecting potentially harmful conversations, the monitor ranks mathematical proof attempts. Instead of a safety policy determining the label, Lean determines whether the proof is formally valid.
+## How we tested it
 
-This is not a replication of Anthropic's jailbreak defense. The task, labels, baselines and success criterion are different.
+A language model produces numerical states called *activations* while reading a conversation. A small classifier, called a *probe*, can learn to read information from them without retraining the model.
 
-## The research question
+We captured **456 scripted conversations** across development, training, validation and the two tests. Comparisons included single-layer and all-layer classifiers, direction-based probes, text methods and direct record checking.
 
-**Do internal activation monitors help find more Lean-verifiable proof candidates than token likelihood, text-based selection and direct checking when every method receives the same total time?**
+The same success sentence could be truthful or false depending on the earlier verification record. Honest failure, honest nonexecution and discussion of false claims provided controls: the monitor should not flag a report merely because something went wrong.
 
-The model is not retrained. A frozen [google/gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it) model generates short proof candidates, while small external monitors examine its internal activations.
-
-This makes the experiment a concrete test of machine-assisted interpretability: another computational system reads the model's internal state, but its usefulness is judged against independent external evidence.
-
-## Three levels of evidence
-
-The study separates three questions that are often mistakenly treated as one.
-
-### H1: Prediction
-
-Can internal activations distinguish valid from invalid proof candidates better than token likelihood and simple text features?
-
-A positive result would show that validity-related information is decodable from the model. It would not yet show that the information is useful in practice.
-
-### H2: Dynamics
-
-Does explicitly modeling activation trajectories improve prediction beyond static multi-layer probes?
-
-We compare static probes and a Motion-only monitor with a planned Gemma adaptation of the full [Three-Reader architecture](https://arxiv.org/abs/2608.05660). Three-Reader combines information about motion, region and direction in the residual-stream trajectory. The adaptation will be described as full only if its fidelity to all three components is documented before protected evaluation.
-
-A positive result would show additional predictive value from modeling the trajectory. It would not establish a causal role for that trajectory in producing a valid proof.
-
-### H3: Practical utility
-
-Does the best internal monitor find more verified solutions under the same total time budget than both:
-
-- the strongest selection method without internal activations; and
-- checking candidates immediately as they are generated?
-
-This is the main result. Strong prediction without an improvement in verified solutions would be reported as decodable information without demonstrated practical value.
-
-## The experiment
-
-1. **Generate proof attempts.**
-   A frozen Gemma 2 model produces several natural proof candidates for short Lean problems.
-
-2. **Verify every candidate.**
-   Lean checks each completed candidate. Invalid proofs, infrastructure failures and timeouts are recorded separately.
-
-3. **Train small monitors.**
-   Lean verdicts provide the training labels. At prediction time, monitors receive only the problem, the completed candidate and selected internal activations. Lean output, reference proofs and information from later attempts are never used as input features.
-
-4. **Compare methods.**
-   Internal monitors are compared with token likelihood, text features and direct checking.
-
-5. **Freeze the selection rule.**
-   Models and settings are selected using training and validation data before protected test results are opened.
-
-6. **Run the equal-budget test.**
-   Every method receives the same total time, including generation, monitoring, data transfer and Lean verification.
-
-7. **Count externally verified solutions.**
-   The independent unit is the proof problem, not an activation, token or individual candidate.
-
-Label-shuffle controls, length controls and component ablations test whether the monitors rely on superficial patterns and whether each component adds predictive value. Transfer tests assess whether any gains hold on new problems.
-
-~~~mermaid
-flowchart LR
-    A[Lean problem] --> B[Gemma generates candidates]
-    B --> C[Monitor ranks candidates]
-    C --> D[Lean checks candidates]
-    D --> E[Verified solutions within the same budget]
-~~~
-
-## What the monitor can and cannot do
-
-The monitor cannot create a correct proof that Gemma never generated. Its immediate purpose is to improve selection and compute allocation.
-
-A positive result would mean:
-
-> Among the proof attempts already available, internal signals helped us reach valid ones sooner.
-
-It would not establish that:
-
-- Gemma developed stronger reasoning abilities;
-- the monitor detects errors during generation;
-- internal activations provide a complete explanation of the model;
-- the method generalizes to arbitrary natural-language answers;
-- it detects hallucinations, deception or jailbreaks.
-
-Lean verifies the formal statement it receives. It cannot determine whether an incorrectly formalized statement faithfully represents an original natural-language problem.
-
-Negative and inconclusive findings remain valid outcomes of the study.
-
-## Mechanistic follow-up
-
-Prediction alone does not explain what the monitor has learned. It could rely on genuine proof-relevant computation, but it could also exploit candidate length, formatting or another shortcut.
-
-Circuit tracing is therefore a follow-up, not a substitute for the main experiment.
-
-If an internal monitor performs usefully on unseen problems, we would first test whether Anthropic's [open-source circuit-tracing tools](https://www.anthropic.com/research/open-source-circuit-tracing) can explain features associated with its score. This requires a documented adaptation to the monitor's target. We would use matched valid, invalid and difficult examples from the training and validation sets, then test the resulting hypotheses through interventions.
-
-The follow-up would ask:
-
-1. Which internal features are associated with the monitor's score, and can their contributions be traced?
-2. Do those paths correspond to proof-relevant computation?
-3. Do they survive controls for length and formatting?
-4. Does perturbing them in the original Gemma model produce the predicted effect?
-5. Can robust circuit features improve a small runtime monitor on fresh problems?
-
-Full attribution graphs would not run for every candidate. They are too expensive and represent only part of the original computation. Any graph-based hypothesis must therefore be tested in the original model and on held-out data.
-
-Circuit evidence may explain or improve a successful monitor. It cannot rescue a negative primary result.
+The question was contextual: **did the evidence support the claim?** All registered comparisons, controls and weaker results are retained.
 
 ## Why this matters
 
-Current interpretability research often asks whether information can be extracted from a model or whether a particular internal mechanism can be reconstructed.
+For an AI agent, a success report can influence whether software is released, an evaluation is accepted or another agent continues working. Simulated agent evaluations have already included concealed code changes, altered financial records and misleading labels. [Agentic misalignment research](https://alignment.anthropic.com/2026/agentic-misalignment-summer-2026/)
 
-This project adds a practical requirement:
+Our study tackles one concrete problem: **a success claim that contradicts the evidence.**
 
-> Does the internal signal improve an externally verified outcome after its computational cost is included?
+### Broader potential
 
-That distinction matters for reliable AI systems. A monitor can have excellent prediction scores and still be too slow, too fragile or too poorly calibrated to help in practice.
+**A user tries to bypass safeguards. An assistant claims success without evidence.** Different problems, but a shared question: can internal signals help us recognize when something is wrong?
 
-If the approach works, a lightweight external monitor could help allocate expensive verification or additional computation without modifying the underlying model. The same principle might later be tested in other domains, but such transfer would require new evidence and new validation.
+**Internal monitoring already has evidence beyond controlled fixtures.** Activation-based probes have shown practical value within jailbreak-defense systems evaluated through human red-teaming and on production traffic. Our study applies this research direction to detecting false success claims.
 
-## Current status
+Alongside this study, we report encouraging findings from a separate jailbreak-monitoring experiment. Its supporting evidence is pending review and is not included in the audited benchmark above.
 
-The protocol and local implementation are being checked. The first empirical milestone is a development-only feasibility run with real Gemma candidates and real Lean verification.
+**There is already a promising foundation across two domains:** detecting false claims in assistant messages and defending against user jailbreak attempts. Our audited scripted-report results and separately reported jailbreak findings add to that foundation. Further research will build on it by testing how reliably these signals generalize and whether the same trained monitor can transfer to other domains.
 
-The study proceeds to its protected tests only if the development run produces enough valid candidates, invalid candidates and problems containing both.
+**We now have a working monitoring candidate, a clear benchmark and an audited result to build on.** The opportunity is to turn such signals into warnings that help people decide when to check a model's claims more carefully.
 
-The project is designed around an 8 GB RAM laptop and free Colab access where available. The public release will include:
+## Where it started
 
-- source code and pinned configurations;
-- tests and run instructions;
-- model, tokenizer and verifier provenance;
-- runtime and compute measurements;
-- successful and unsuccessful runs;
-- protocol changes;
-- negative or inconclusive findings.
+My earlier [Answerability x Familiarity](https://github.com/Fredo220/Answerability-x-Familarity-) project found decodable answer availability, although its predicted behavior was not supported and its causal findings were mixed.
 
-Limited compute reduces the scale of the study, but not the requirement for external verification, held-out evaluation or honest reporting.
+We then tried monitoring mathematical proofs. **The Lean research track remains in progress.** Incomplete answers, formatting problems and verifier difficulties left too few verified proofs to evaluate a monitor.
+
+We stepped back and worked from first principles: struggling to solve a problem is different from falsely reporting success. The simpler study now gives us a positive controlled result; the Lean infrastructure remains available for a later, separately validated return to proofs.
+
+## The next test
+
+**Does the monitor still detect false success reports when the model writes them itself, across genuinely different tasks?**
+
+The planned study will use fresh tasks, naturally generated reports and independent execution records. Its protocol will be frozen before collection, and monitor settings before test results are opened. Direct checks and honest failure controls remain essential comparisons.
+
+**The next milestone is to extend this successful result to model-written reports and new task families, while keeping false alarms manageable.** The completed results will remain unchanged.
+
+## Methods and reproduction
+
+The [protocol](docs/deception_monitoring/false_reporting_dom_v1/PROTOCOL.md), [comparison amendment](docs/deception_monitoring/false_reporting_dom_v1/COMPARISON-AMENDMENT.md), [Colab notebook](notebooks/false_reporting_dom_ccpp_v1.ipynb) and [audit ledger](docs/deception_monitoring/false_reporting_dom_v1/GATES.md) document the run. The [results report](docs/deception_monitoring/false_reporting_dom_v1/RESULTS.md) includes cutoffs, replay checks and limitations.
+
+The notebook documents the original run and requires its frozen private input kit.
+
+An 8 GB RAM laptop handles local tests and analysis; Colab handles model captures. Raw activation archives remain private and outside Git; their sizes, hashes and audit status are recorded in the report.
+
+<details>
+<summary>Earlier experiments and what they established</summary>
+
+The current result does not replace or overturn earlier findings. Each study retains its own data, protocol and result.
+
+| Study | What we learned | Report |
+|---|---|---|
+| Lean development | The initial setup did not supply enough usable, verified proofs to evaluate monitoring. The Lean research track remains ongoing. | [Gemma outcome](docs/development_outcome_2026-09-16.md), [Kimina pilot](docs/kimina_execution/development_pilot.md) |
+| Code correctness | Internal information was detectable in some settings, but an advantage over strong text baselines was not established. | [Held-out study](docs/code_monitoring_heldout_result_2026-09-27.md), [transfer study](docs/humaneval_transfer_result_2026-09-27.md) |
+| Activation trajectories | The reduced reader did not establish an incremental gain; full-reader feasibility did not include a fresh independent test. | [Trajectory result](docs/trajectory_followup_result_2026-09-27.md), [full-reader audit](docs/three_reader_implementation.md) |
+| Live code monitoring | The monitor observed generation, but missed most failures and did not establish useful early warning. | [Live study](docs/streaming_live_result_2026-09-30.md) |
+| Natural roleplay deception | A signal was detected, but the fixed threshold missed many deceptive responses. Labels were AI-assisted and user-reviewed, not independently blinded. | [371-response analysis](docs/deception_monitoring/focused_replication_v1/final_review_2026-10-02/REPORT.md) |
+| Combined alert signals | Some combinations caught more deceptive responses at the cost of more honest alerts; the comparisons remain exploratory. | [Combination study](docs/deception_monitoring/matched_alerts_v1/REPORT.md), [publication audit](docs/deception_monitoring/publication_audit_v1/REPORT.md) |
+
+</details>
+
+<details>
+<summary>Longer-term research background</summary>
+
+In conversations with OpenAI engineers, I was encouraged to study the coordinating agents and Lean formalization behind OpenAI's proposed Navier-Stokes solution. This is background inspiration for a later return to formal proofs, not evidence for the monitor's performance or an OpenAI endorsement. [OpenAI's announcement and Lean formalization](https://openai.com/index/navier-stokes-solution/)
+
+Circuit tracing may later help investigate which representations support the detection signal. That mechanistic follow-up is separate from the immediate transfer test. [Circuit-tracing tools](https://www.anthropic.com/research/open-source-circuit-tracing)
+
+</details>
 
 ## License
 
-Available under the [PolyForm Noncommercial License 1.0.0](LICENSE.md).
-
-Noncommercial research, experimentation and study are permitted under its terms. Commercial use requires separate permission. This is a source-available license.
+Available under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). Noncommercial research, experimentation and study are permitted under its terms. Commercial use requires separate permission. This is a source-available license.
 
 Required Notice: Copyright 2026 Friedrich Reichelt.

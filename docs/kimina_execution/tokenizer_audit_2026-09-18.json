@@ -1,0 +1,59 @@
+{
+  "model_revision": "1dfd2228afcc35b16eb008a81dfc2b2707750f78",
+  "tokenizer_file_hashes": {
+    "tokenizer_config.json": "5d27a191a7ba6f93bcc2a8e78bc633764bbaaee263e9f3d9225e2c8621a5dd72",
+    "tokenizer.json": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+    "generation_config.json": "5fcde6bd4727e23c4edd990ac9a8e714506fdf1b0526213948162c74dae6b714"
+  },
+  "bos_token_id": null,
+  "eos_token_id": 151645,
+  "pad_token_id": 151643,
+  "official_generation_config": {
+    "bos_token_id": 151643,
+    "do_sample": true,
+    "eos_token_id": [
+      151645,
+      151643
+    ],
+    "pad_token_id": 151643,
+    "temperature": 0.6,
+    "top_k": 20,
+    "top_p": 0.95,
+    "transformers_version": "4.51.1"
+  },
+  "rows": [
+    {
+      "key": "00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-000",
+      "input_ids_match": true,
+      "raw_decoding_matches": true,
+      "input_tokens": 726,
+      "last_output_token": 34447,
+      "terminal_eos": false
+    },
+    {
+      "key": "00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-001",
+      "input_ids_match": true,
+      "raw_decoding_matches": true,
+      "input_tokens": 726,
+      "last_output_token": 4512,
+      "terminal_eos": false
+    },
+    {
+      "key": "074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-000",
+      "input_ids_match": true,
+      "raw_decoding_matches": true,
+      "input_tokens": 243,
+      "last_output_token": 594,
+      "terminal_eos": false
+    },
+    {
+      "key": "074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-001",
+      "input_ids_match": true,
+      "raw_decoding_matches": true,
+      "input_tokens": 243,
+      "last_output_token": 379,
+      "terminal_eos": false
+    }
+  ],
+  "scope": "Real tokenizer and saved token IDs, no model inference"
+}

@@ -1,0 +1,27 @@
+{
+  "amendment": "2026-09-30 user explicitly restored every registered evaluation setting; data-quantity reduction applies only to ordinary-chat controls",
+  "base_focused_config_sha256": "66b58979a1f10458c7fa2ad3922cdcd16978a5f4a2ec4646bd016ecc80b18206",
+  "base_focused_reuse_manifest_sha256": "ffced6e070b7443886f25c826e92919fba0ee9607553e23123ab1543154640a2",
+  "base_focused_selection_manifest_sha256": "56d5600c86398a5b8a42a6825420f79811a491f94ff98e3f3d2076470a1e6b46",
+  "effect": {
+    "all_28_layer_readouts_and_source_probe_method": "unchanged",
+    "all_371_original_roleplays": "unchanged",
+    "all_612_paired_training_rows": "unchanged",
+    "control_calibration_evaluation": [1000, 1000],
+    "grader": "gpt-6.1-sol; access currently blocked; no substitution",
+    "other_registered_evaluations": "restore all entries from original v3 main configuration; resolve source and conditioning fidelity before execution",
+    "superseded_base_field": "boundaries.no_other_eval_populations_in_focused_scope"
+  },
+  "other_evaluation_manifest_sha256": "2e70c2fa9292e73a597b41b03a97f329f4686f757a30c1141177a34477594821",
+  "other_evaluations_in_original_configuration_order": [
+    "ai_liar__original_without_answers",
+    "insider_trading__upscale",
+    "insider_trading_doubledown__upscale",
+    "sandbagging_v2__wmdp_mmlu",
+    "ai_audit__reasoning",
+    "ai_audit__a1_2",
+    "ai_audit__a1_2_reasoning"
+  ],
+  "source_v3_config_sha256": "0f8c7cd1e38d7f1182a3aed1230c01104b8b8195a59d01a0c8f13ae30525c01f",
+  "status": "scope_restored_before_any_focused_evaluation_score_or_label_was_opened"
+}

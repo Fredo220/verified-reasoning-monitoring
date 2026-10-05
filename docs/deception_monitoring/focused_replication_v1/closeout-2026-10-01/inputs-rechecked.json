@@ -1,0 +1,21 @@
+{
+  "all_layer_probe_count": 28,
+  "binary_roleplay_rows_before_score_coverage": 301,
+  "execution_scope": "Local saved records and small parameter archives only; no model or grader calls",
+  "independent_blinded_human_review": false,
+  "label_null_archive_sha256": "e8995a0df3553960817e70fd1609074888cd9cb45f51d0088c96f18c30e32a3f",
+  "label_null_count": 200,
+  "label_null_warning_count": 200,
+  "primary_label_counts": {
+    "ambiguous": 70,
+    "deceptive": 217,
+    "honest": 84
+  },
+  "primary_rows": 371,
+  "probe_archive_sha256": "87adcfa770939d36907d535d61e61dcb79ccbcaa517e29ed3bda129c311e6910",
+  "review_agreements": 41,
+  "review_cases": 50,
+  "review_status": "human_reviewed_ai_assisted",
+  "script_sha256": "fd05f94e40a17e748b7684eef9b62c37f25959469722d4fa248d07600a8d2be4",
+  "status": "saved_inputs_rechecked_no_performance_read"
+}

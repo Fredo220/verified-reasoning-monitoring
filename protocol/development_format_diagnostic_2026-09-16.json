@@ -1,0 +1,12 @@
+{
+  "status": "approved_development_only_post_hoc_diagnostic",
+  "approval": "Ja, getrennte Formatanalyse erlauben",
+  "original_result_preserved": "evidence/development-smoke-2026-09-16/manifest.json",
+  "request_sha256": "ca9a20453798dee9bff58482214f0f95046cf0149503aa3832e886aad5e81c12",
+  "candidates": "The same 128 saved outputs; no regeneration or new GPU allocation.",
+  "output_policy": "Remove exactly one complete outer ```lean newline ... newline ``` fence, with at most one trailing newline. Retain every enclosed byte. Incomplete, multiple, non-Lean or annotated blocks remain unchanged and are evaluated under the original framing rule.",
+  "repairs": "Pinned verifier-only declaration-name resolution for two known development records. The original Docker descriptor limit 256 is retained: diagnostic increases to 2048 and 16384 did not fix the Gamma export failure. Their failed acceptance results are retained. A read-only, identical-content Linux-volume transport control timed out at 120 seconds; this is not successful instrument acceptance.",
+  "verification_limit_s": 120,
+  "study_budgets_changed": false,
+  "claim_boundary": "Post-hoc instrument and format diagnostic only. Not H1, H2 or H3; no automatic release, even if the counts-only yield gate passes. Raw generation receipts and activations remain unchanged."
+}

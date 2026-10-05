@@ -1,0 +1,18 @@
+{
+  "id": "vrm-development-split-smoke-2026-09-16",
+  "status": "approved_before_remaining_generation",
+  "approval": "User approved Development-Budget genehmigen and Rohausgabe unveraendert bewerten on 2026-09-16.",
+  "request_sha256": "ca9a20453798dee9bff58482214f0f95046cf0149503aa3832e886aad5e81c12",
+  "gpu_allocation_limit_s": 3600,
+  "verifier_limit_s": 120,
+  "max_candidates": 128,
+  "output_policy": "raw_unchanged",
+  "reuse_first_candidate_receipt_sha256": "ae3ffdf5e0ef8e2b83b5c65cc6758a872d1341d6162bd15febf32504bce8dbfd",
+  "previous_attempt": "One candidate was already observed with a Markdown fence. Preserve it, classify the unchanged raw response under the corrected format-error handler, and do not regenerate it.",
+  "accounting": "New GPU allocation includes setup, loading, computation and idle time. Previous allocation is reported separately and still counts toward the study total. Local verification is bounded to 128 times 120 seconds; security preflight, postflight and transport are separately measured. This is offline development, not a matched-budget H3 run.",
+  "study_budgets_changed": false,
+  "corpus_changed": false,
+  "yield_gate_changed": false,
+  "prospective_h3": false,
+  "commit_policy": "Commit only after the real attempt and its audited result; no push in this execution."
+}

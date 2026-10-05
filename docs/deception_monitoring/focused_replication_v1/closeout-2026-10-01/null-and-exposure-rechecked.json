@@ -1,0 +1,44 @@
+{
+  "exposure_analysis_sha256": "9b0193b3502cbedfced9cac438b6fa9bb8ac3597a077a4ca6e3348146205586d",
+  "exposure_strata": {
+    "all_source_scenarios": {
+      "binary_n": 301,
+      "layer22_auroc": 0.8333333333333334,
+      "scenarios": 371
+    },
+    "no_documented_prior_exposure": {
+      "binary_n": 219,
+      "layer22_auroc": 0.829559748427673,
+      "scenarios": 268
+    },
+    "outside_prior_v2": {
+      "binary_n": 225,
+      "layer22_auroc": 0.8272584754066236,
+      "scenarios": 275
+    }
+  },
+  "limits": "Null optimizer convergence warnings remain; these are diagnostics, not an independent label audit or definitive permutation significance test.",
+  "null_analysis_sha256": "48748d7cadf96be37c66325e16694a31387c9647b750398c302877d9c9366f2d",
+  "null_layers": {
+    "8": {
+      "auroc_range": [
+        0.3577463243361861,
+        0.6692451174017995
+      ],
+      "median": 0.4922646477946017,
+      "null_count": 100,
+      "nulls_at_or_above_primary": 0
+    },
+    "22": {
+      "auroc_range": [
+        0.3424950625411455,
+        0.6369321922317314
+      ],
+      "median": 0.4989027869212201,
+      "null_count": 100,
+      "nulls_at_or_above_primary": 0
+    }
+  },
+  "null_source_rows": 371,
+  "status": "independent_null_token_means_pair_count_and_exposure_point_estimates_pass"
+}

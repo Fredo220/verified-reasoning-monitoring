@@ -1,0 +1,269 @@
+{
+  "file_count": 36,
+  "total_bytes": 3578592995,
+  "backup_inventory_checks": 262,
+  "source_and_receipt_hashes_verified": true,
+  "array_headers_verified": true,
+  "array_values_not_yet_audited": true,
+  "summary": {
+    "completed": 4,
+    "continue_to_H1_H3": false,
+    "measured_gpu_pipeline_s": 3706.582270671999,
+    "prospective_h3": false,
+    "requested": 4,
+    "status": "completed"
+  },
+  "rows": [
+    {
+      "key": "00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-000",
+      "finish": "length",
+      "input_tokens": 726,
+      "output_tokens": 8096,
+      "activation_bytes": 939846034,
+      "final_text": null
+    },
+    {
+      "key": "00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-001",
+      "finish": "length",
+      "input_tokens": 726,
+      "output_tokens": 8096,
+      "activation_bytes": 939780810,
+      "final_text": null
+    },
+    {
+      "key": "074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-000",
+      "finish": "length",
+      "input_tokens": 243,
+      "output_tokens": 8096,
+      "activation_bytes": 888557354,
+      "final_text": null
+    },
+    {
+      "key": "074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-001",
+      "finish": "operational_timeout",
+      "input_tokens": 243,
+      "output_tokens": 7345,
+      "activation_bytes": 808417927,
+      "final_text": null
+    }
+  ],
+  "lean_verification": "pending",
+  "files": [
+    {
+      "name": "00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-000.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-000.json",
+      "sha256": "37aebad1c40781f186c72bd496552f7ff249ed14e2b3ffb29e877dfb3cc217c5",
+      "bytes": 254259
+    },
+    {
+      "name": "00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-000.npz",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-000.npz",
+      "sha256": "e735d1d5cd836be06f02685be75acd9210c16bd0284e9b75c26b9a1434f13247",
+      "bytes": 939846034
+    },
+    {
+      "name": "00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-001.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-001.json",
+      "sha256": "d9d57feec5e606866d1c31609281a2fc2b58f6f716a792a76a9472df410befe2",
+      "bytes": 246170
+    },
+    {
+      "name": "00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-001.npz",
+      "path": "/Users/friedrichreichelt/Downloads/results/00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-001.npz",
+      "sha256": "01b66df5482ceb0db2d63fb74cdd46f51bb0c9416fe14400611fa5d9b64a29a3",
+      "bytes": 939780810
+    },
+    {
+      "name": "074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-000.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-000.json",
+      "sha256": "b2df15355dce8290e1e1853ccd6d5f546c2573b4789029fc19f19b4908e7eacc",
+      "bytes": 241318
+    },
+    {
+      "name": "074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-000.npz",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-000.npz",
+      "sha256": "cf9040c9fc5afef185b3d24c86ad9d7e73407086d4809faea44d894831ae8e36",
+      "bytes": 888557354
+    },
+    {
+      "name": "074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-001.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-001.json",
+      "sha256": "812e28f259dc52ba4a8ccec0463e772af4bdf23b06b92b8f6d6704eff3ec16d4",
+      "bytes": 216419
+    },
+    {
+      "name": "074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-001.npz",
+      "path": "/Users/friedrichreichelt/Downloads/results/074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-001.npz",
+      "sha256": "494e4e5daa627d2378d1cab799e5e025dab8137e8cae69b9f1f0b1298e3d65f6",
+      "bytes": 808417927
+    },
+    {
+      "name": "backup-cost-0000.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/backup-cost-0000.json",
+      "sha256": "0596c625d1499c875c410c1f6de2d5db52b23f16755cfe0e7cd3cbad48af3aae",
+      "bytes": 1126
+    },
+    {
+      "name": "backup-cost-0001.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/backup-cost-0001.json",
+      "sha256": "37b3104626d2d68be8cb0f6dfb1af8de13e250bb1ab79e93d0bc7fb028250619",
+      "bytes": 1664
+    },
+    {
+      "name": "backup-cost-0002.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/backup-cost-0002.json",
+      "sha256": "96228734e28fea187308aa2141ea7c7665e5ca56e585dcf020df65dfa2f052ad",
+      "bytes": 1965
+    },
+    {
+      "name": "backup-cost-0003.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/backup-cost-0003.json",
+      "sha256": "317aab9d809f56edbc6db5a5facb5e85bbf3b89c5977c47376e3ad7247774dd4",
+      "bytes": 2439
+    },
+    {
+      "name": "backup-cost-0004.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/backup-cost-0004.json",
+      "sha256": "ad8c8f189a72d68e5eb3f466e6e0526c77c4776141439464da0b4a749bf02c4f",
+      "bytes": 2742
+    },
+    {
+      "name": "backup-cost-0005.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/backup-cost-0005.json",
+      "sha256": "c65adf4a394d5f9eb34c518d47a3ba10bc34f1f9c18aca26ca824280a9ee7f93",
+      "bytes": 3044
+    },
+    {
+      "name": "backup-cost-0006.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/backup-cost-0006.json",
+      "sha256": "a3e57cbd805af553e1b5095e03509ae5a277b29cc46ac6792378f40b89b40611",
+      "bytes": 3520
+    },
+    {
+      "name": "backup-cost-0007.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/backup-cost-0007.json",
+      "sha256": "deafd815ca46ed5526c60eabfd2b6936918eb4e29e34fb5e8cdb1a1b69c4878d",
+      "bytes": 3823
+    },
+    {
+      "name": "backup-cost-0008.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/backup-cost-0008.json",
+      "sha256": "f5256317d4c709ef394cc5f1559c9b565b7b8225bee91f62d01f9f007d26351a",
+      "bytes": 4125
+    },
+    {
+      "name": "backup-cost-0009.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/backup-cost-0009.json",
+      "sha256": "bf651c8c5f7dc876c55213773f65bf54ee4287929545c25680921f7ffe3bbcc2",
+      "bytes": 4602
+    },
+    {
+      "name": "backup-cost-0010.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/backup-cost-0010.json",
+      "sha256": "c12b0d2840bf7f8e3722459b89c7e2cd99d378d3c64dd3ccdecb676af15d5aff",
+      "bytes": 4904
+    },
+    {
+      "name": "backup-cost-0011.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/backup-cost-0011.json",
+      "sha256": "0c9e5739ca46a78f8f498482729e6f1fa9f68f311b58e201d0fbbef007349d75",
+      "bytes": 5207
+    },
+    {
+      "name": "backup-cost-0012.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/backup-cost-0012.json",
+      "sha256": "f757c21196fb6f4ea449fbf8a4de7274617413848c4f298299204acb0f25ce90",
+      "bytes": 5682
+    },
+    {
+      "name": "backup-cost-0013.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/backup-cost-0013.json",
+      "sha256": "a43b43d8153769e881f8972893dddbd392ebd52f1df9b62c01df354abd871e7f",
+      "bytes": 5917
+    },
+    {
+      "name": "identity.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/identity.json",
+      "sha256": "dd71d45bf97b9a6c4ea48d0157de69b6cea3173f90d80b6b5c1d9dde5fc4841a",
+      "bytes": 1509
+    },
+    {
+      "name": "load-000.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/load-000.json",
+      "sha256": "1548dfbac5e98ff99f9de214d1a1001895fa4418987074b44885f41f653b558c",
+      "bytes": 1408
+    },
+    {
+      "name": "raw-00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-000.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/raw-00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-000.json",
+      "sha256": "7564cbeccddfd665b5f2b6b04975c98d8fe4d9b1b20f189635403d4e185f8b77",
+      "bytes": 254079
+    },
+    {
+      "name": "raw-00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-001.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/raw-00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-001.json",
+      "sha256": "4996d589ad5897b30a42f7180e06aa1fd1099ceb49d264ae0d3435abbba91a2a",
+      "bytes": 245994
+    },
+    {
+      "name": "raw-074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-000.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/raw-074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-000.json",
+      "sha256": "203b3456370e012a58d7796a29cf6ed883b9f3f8ba5103fe2a0774457875a84b",
+      "bytes": 241143
+    },
+    {
+      "name": "raw-074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-001.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/raw-074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-001.json",
+      "sha256": "a32288fc42b715062fc46453ff318e01e4ae2cc638540231b1539c63d47febb1",
+      "bytes": 216242
+    },
+    {
+      "name": "request.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/request.json",
+      "sha256": "c07b94efeef8b868592c99ebd71f4c27a8d0d75b312ba7f3c12df8b3f505f56e",
+      "bytes": 15705
+    },
+    {
+      "name": "started-00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-000.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/started-00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-000.json",
+      "sha256": "04fe74393bdd1228a52cadb34217c1fb879072e1a08abb6d68e412929dd7a166",
+      "bytes": 916
+    },
+    {
+      "name": "started-00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-001.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/started-00f31bdfb3f00a1614171b0f0798c0a0cab9ae4f50df088b685b3532312db71d-001.json",
+      "sha256": "8c05ae365622807fc2ef135d0ebba84264bfaa43a9a5ce27a630f61a6b719d63",
+      "bytes": 918
+    },
+    {
+      "name": "started-074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-000.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/started-074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-000.json",
+      "sha256": "abbbe2904bff18acda619d9a1747e37f8a4c4bf213ed4f7d117f34b548bea35f",
+      "bytes": 918
+    },
+    {
+      "name": "started-074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-001.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/started-074b90edb58a8b5ecc5f35c5e15b1b668458813640690cf5ba49d9430ce0e075-001.json",
+      "sha256": "0ae1f279803a9381850c1141ebe9ea6a30abaa1f556acd1ba895e83cf285751a",
+      "bytes": 917
+    },
+    {
+      "name": "started-load-000.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/started-load-000.json",
+      "sha256": "ef6e95a189e5ab2b27cd42b91b8273cb783527447345534b680d0ae3630e3008",
+      "bytes": 887
+    },
+    {
+      "name": "summary.json",
+      "path": "/Users/friedrichreichelt/Downloads/results 2/summary.json",
+      "sha256": "dd20ba2eecbd85b06daa73a4968cf23fe4c89bb5a6875ab3088f19302ba5f550",
+      "bytes": 993
+    },
+    {
+      "name": "wrapper-1789581976643555966.json",
+      "path": "/Users/friedrichreichelt/Downloads/results/wrapper-1789581976643555966.json",
+      "sha256": "f354e882e89e4272c1fbaac7103ebfa237ba6b2496a3d8ed7f21771baea1a3db",
+      "bytes": 315
+    }
+  ]
+}

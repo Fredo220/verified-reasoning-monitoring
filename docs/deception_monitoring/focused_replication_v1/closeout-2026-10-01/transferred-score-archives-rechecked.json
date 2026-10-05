@@ -1,0 +1,14 @@
+{
+  "archive_bytes": 80965809,
+  "archive_count": 24,
+  "member_count": 4742,
+  "score_audit_sha256": "92485089da94eccbe589910d648b402076f6e85c10dc6dc71b61c3eb1494978d",
+  "score_counts": {
+    "calibration": 1000,
+    "evaluation": 1000,
+    "roleplays": 371
+  },
+  "status": "independent_local_score_zip_and_extracted_member_audit_pass",
+  "summary_sha256": "02c9bd21d0a43e1efb0d9be4c23d588e525c53af6031975a69921c1ca3443c76",
+  "threshold_freeze_sha256": "663cb6015eb7a12dbfbc06bb63cfb6a48d1d6ddbfd4c2c898344976fb6031829"
+}

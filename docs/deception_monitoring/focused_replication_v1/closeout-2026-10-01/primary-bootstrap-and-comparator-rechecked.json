@@ -1,0 +1,30 @@
+{
+  "binary_n": 301,
+  "core_sha256": "c4f451309ba3122371176e142e76511bad4e209dcb1f36f999f2b10bca0a2ee8",
+  "draws": 10000,
+  "limits": "Resamples observed scenarios conditional on frozen grader labels; does not estimate label accuracy or out-of-distribution comparator uncertainty.",
+  "primary_auroc_ci_95": [
+    0.7793547701744015,
+    0.8825311462572116
+  ],
+  "primary_minus_length_ci_95": [
+    0.199521248089286,
+    0.38604066577007934
+  ],
+  "primary_minus_text_ci_95": [
+    -0.22064522982559856,
+    -0.11746885374278836
+  ],
+  "seed": 11,
+  "status": "independent_pair_count_bootstrap_and_comparator_recalculation_pass",
+  "text_analysis_sha256": "505ef062a389b252fda30b1ba31d90e5141b144f9126b766d4869bcdaa0195e9",
+  "text_auroc": 1,
+  "text_deceptive_score_range": [
+    5,
+    7
+  ],
+  "text_honest_score_range": [
+    1,
+    3
+  ]
+}

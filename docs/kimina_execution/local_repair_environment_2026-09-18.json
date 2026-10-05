@@ -1,0 +1,21 @@
+{
+  "packages": {
+    "accelerate": "1.14.0",
+    "huggingface-hub": "1.30.0",
+    "matplotlib": "3.11.1",
+    "numpy": "2.5.3",
+    "safetensors": "0.8.0",
+    "scikit-learn": "1.9.0",
+    "tokenizers": "0.23.2",
+    "torch": "2.14.0",
+    "transformers": "5.16.1",
+    "pytest": "9.1.1"
+  },
+  "files": {
+    "src/vrm/kimina.py": "4c26307aa58206feb6c81ff3cf91076bbb5f9bad423762e4c93674d2dee060c1",
+    "src/vrm/runtime.py": "03239ab618c701facbedf49248b259d0240c1111d0fffccd1db3488e32d4bd8d",
+    "tests/test_kimina.py": "265719345f128b11c204783c56f293c0f874eb8512e07ca50e57fe5c8d2027ae",
+    "tests/test_kimina_backup.py": "9f12b2f3d56450dd5705a1ff0cbac5b245026eb887d6567581fabc9df1982773",
+    "docs/kimina_execution/prepare_format_repair.py": "9fde066bfeda332d3f3917e99f3b8adc04f758cb2d39a51f4119e7e478715d48"
+  }
+}

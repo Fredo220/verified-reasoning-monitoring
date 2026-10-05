@@ -1,0 +1,9 @@
+{
+  "core_sha256": "c4f451309ba3122371176e142e76511bad4e209dcb1f36f999f2b10bca0a2ee8",
+  "figures": {
+    "all-layer-profile.png": "4c601196e4c0d9034848e588e9f58c0a68f6257af6250b1e1e048efa2cd4fd80",
+    "primary-detection-and-alerts.png": "c8c0463c3d1b2498f5912c15b5d28bb3efc1bcb8d38e03e92f95a3a585ab8a3d"
+  },
+  "scope": "Presentation of frozen results only; no model, layer, threshold, or label selection",
+  "score_audit_sha256": "92485089da94eccbe589910d648b402076f6e85c10dc6dc71b61c3eb1494978d"
+}

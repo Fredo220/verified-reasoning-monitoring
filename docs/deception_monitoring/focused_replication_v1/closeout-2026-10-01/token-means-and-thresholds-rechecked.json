@@ -1,0 +1,23 @@
+{
+  "capture_status_counts": {
+    "calibration": {
+      "captured": 1000
+    },
+    "evaluation": {
+      "captured": 1000
+    },
+    "roleplays": {
+      "captured": 371
+    }
+  },
+  "layer_count": 28,
+  "score_counts": {
+    "calibration": 1000,
+    "evaluation": 1000,
+    "roleplays": 371
+  },
+  "script_sha256": "856b1bbf53e187b2efb65c2cd40959df514057ba2267edf5c2ad51dfc0109b19",
+  "selection_sha256": "56d5600c86398a5b8a42a6825420f79811a491f94ff98e3f3d2076470a1e6b46",
+  "status": "independent_token_score_and_threshold_audit_pass",
+  "threshold_freeze_sha256": "663cb6015eb7a12dbfbc06bb63cfb6a48d1d6ddbfd4c2c898344976fb6031829"
+}
