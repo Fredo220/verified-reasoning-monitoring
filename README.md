@@ -1,4 +1,4 @@
-# Verified Reasoning Monitoring
+# Internal Signals for AI Reliability
 
 **An AI says, "The tests passed." Can we tell when that claim is unsupported?**
 
