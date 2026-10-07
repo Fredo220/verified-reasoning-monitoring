@@ -68,6 +68,12 @@ Alongside this study, we report encouraging findings from a separate jailbreak-m
 
 **We now have a working monitoring candidate, a clear benchmark and an audited result to build on.** The opportunity is to turn such signals into warnings that help people decide when to check a model's claims more carefully.
 
+### Can this scale?
+
+**Internal monitoring could make checking AI cheaper.** Anthropic’s Constitutional Classifiers++ reads activations the model already produces. A quick first check decides when a stronger, more expensive check is needed, reducing the cost of monitoring every response. [CC++ research](https://arxiv.org/html/2601.04603v1)
+
+**Our CC++ inspired approach was not among the top three strategies on our benchmark.** Our simpler all-layer classifier performed best across the two small reporting tests. Further research on larger datasets and different domains is needed to establish how these approaches compare more broadly, including their detection rates, honest false alarms and checking costs.
+
 ## Where it started
 
 My earlier [Answerability x Familiarity](https://github.com/Fredo220/Answerability-x-Familarity-) project found decodable answer availability, although its predicted behavior was not supported and its causal findings were mixed.
