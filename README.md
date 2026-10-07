@@ -72,7 +72,7 @@ Alongside this study, we report encouraging findings from a separate jailbreak-m
 
 **Internal monitoring could make checking AI cheaper.** Anthropic’s Constitutional Classifiers++ reads activations the model already produces. A quick first check decides when a stronger, more expensive check is needed, reducing the cost of monitoring every response. [CC++ research](https://arxiv.org/html/2601.04603v1)
 
-**Our CC++ inspired approach was not among the top three strategies on our benchmark.** Our simpler all-layer classifier performed best across the two small reporting tests. Further research on larger datasets and different domains is needed to establish how these approaches compare more broadly, including their detection rates, honest false alarms and checking costs.
+**Our simpler all-layer classifier performed best on these short reporting tests.** The CC++ inspired variant was less consistent at its frozen alert threshold. However, our reports were too short to meaningfully test its streaming design, and we did not include its external-classifier stage. Larger and more varied evaluations are needed before drawing broader conclusions.
 
 ## Where it started
 
