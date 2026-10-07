@@ -58,6 +58,8 @@ Our study tackles one concrete problem: **a success claim that contradicts the e
 
 **A user tries to bypass safeguards. An assistant claims success without evidence.** Different problems, but a shared question: can internal signals help us recognize when something is wrong?
 
+**The answer on screen may not tell the whole story.** [J-space research](https://www.anthropic.com/research/global-workspace) has revealed internal concepts and reasoning that never appear in the written answer. This motivates monitors that inspect internal activity for warning signs the visible response might miss. Our published benchmark demonstrates detection of unsupported claims in a controlled setting; monitoring unspoken reasoning remains a broader research direction.
+
 **Internal monitoring already has evidence beyond controlled fixtures.** Activation-based probes have shown practical value within jailbreak-defense systems evaluated through human red-teaming and on production traffic. Our study applies this research direction to detecting false success claims.
 
 Alongside this study, we report encouraging findings from a separate jailbreak-monitoring experiment. Its supporting evidence is pending review and is not included in the audited benchmark above.
