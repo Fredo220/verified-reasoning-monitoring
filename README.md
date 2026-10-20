@@ -6,8 +6,9 @@ This project tests whether the internal activations of a language model carry a 
 
 - **A pre-specified comparison of 18 readout variants** on false task-completion reports, with cutoffs frozen before held-out scoring, every variant reported, and independent replay of the trained heads.
 - **A separation of ranking from detection.** The comparison shows that a score can rank held-out examples perfectly (AUROC 1.00) and still miss every positive at a frozen cutoff, so AUROC alone is not used as the success criterion.
-- **A four-readout comparison on 2B and 9B models** of one family, on validation data and on agentic side-task steps, reported at fixed false positive rates.
-- **An evaluation of the same procedure on larger models** (27B, 122B, 397B total parameters), with classifiers for nine base models being prepared for release.
+- **A four-readout comparison on Qwen3.5-2B and Qwen3.5-9B**, on validation data and on agentic side-task steps, reported at fixed false positive rates.
+- **An improved training and calibration method:** context-contrastive learning, a partial-AUC/CVaR tail loss for low-FPR operation, and independent Neyman-Pearson threshold calibration.
+- **A planned investigation of larger models** (Gemma 2 27B, gpt-oss 120B, Llama 4 Maverick 400B).
 - **A stated evaluation protocol** for the next stage: held-out threshold calibration, episode-level uncertainty, alerts per episode, and an information-matched text-judge baseline.
 
 ## Why this matters for AI safety
@@ -21,8 +22,8 @@ The three studies use different models, data and evaluation procedures. Their me
 | Study | What was tested | Models | Status |
 |---|---|---|---|
 | Scripted false reports | 18 readout variants, specified in advance, on false task-completion reports | Llama-3.2-3B-Instruct | Completed and published |
-| Belief-contradicting statements | Four readout types on validation data and on agentic side-task steps | 2B and 9B | Completed; run-level artifacts in preparation for release |
-| Larger models | The same procedure on larger models of the same family | 27B, 122B, 397B | Evaluated; results and classifiers in preparation for release |
+| Belief-contradicting statements | Four readout types on validation data and on agentic side-task steps | Qwen3.5-2B and Qwen3.5-9B | Completed; run-level artifacts in preparation for release |
+| Larger models | The same procedure on larger models | Gemma 2 27B, gpt-oss 120B (117B total, 5.1B active), Llama 4 Maverick 400B (17B active) | Results pending |
 
 ## Research question
 
@@ -38,7 +39,7 @@ y_M(C,r)=\mathbf 1\!\left[\exists s\in\mathcal S(r):\operatorname{Bel}_M(\neg s\
 
 The label is defined by consistency with the model's own belief, not by objective truth. A factual mistake is therefore not automatically positive, and a statement that is objectively true can be positive if the model believes it to be false. Literally true but misleading statements and deception by omission are outside this definition.
 
-Evidence about the model's belief comes from three sources: unambiguous conversation information, a stable answer after a pressure or cue is removed, and known training conditions. A conservative grouping classifies 79,580 examples (48.8%) as grounded in conversation information. A complete per-example breakdown by source is not yet available.
+Evidence about the model's belief comes from three sources: unambiguous conversation information, a stable answer after a pressure or cue is removed, and known training conditions. A complete per-example breakdown by source is not yet available.
 
 ## Method
 
@@ -112,6 +113,90 @@ A higher `D` means the denial is more inconsistent with the model's internal sta
 
 At 5% FPR, about five of every hundred negative steps are flagged. The overall alert rate also depends on the share of positive steps and on recall. The 5% operating point reflects a preference for higher recall, with a higher cost assigned to missed positive steps than to extra alarms.
 
+## Improved methodology
+
+### Context-contrastive learning
+
+For each context `C`, matched examples are built from a knowing falsehood and a truthful statement:
+
+```math
+x^+=(C,r^+),\qquad x^-=(C,r^-)
+```
+
+```math
+\mathcal L_{\mathrm{contrastive}}
+=\frac{1}{|\mathcal P|}
+\sum_{(x^+,x^-)\in\mathcal P}
+\log\!\left(1+\exp\!\left[m+s_\theta(x^-)-s_\theta(x^+)\right]\right)
+```
+
+`s_θ(x⁺)` is the falsehood score, `s_θ(x⁻)` the truthful-response score, `m` the margin and `𝒫` the validated comparison pairs.
+
+Context-controlled pairs use the same statement under opposing contexts:
+
+| Context | Statement A | Statement B |
+|---|---|---|
+| A is supported | Truthful | False |
+| B is supported | False | Truthful |
+
+The loss compares both responses within each context and the same response across opposing contexts.
+
+### Partial-AUC and CVaR optimization
+
+```math
+\operatorname{pAUC}_{\alpha}=\frac{1}{\alpha}\int_0^\alpha \operatorname{TPR}(u)\,du,
+\qquad \alpha\in\{0.01,\;0.05\}
+```
+
+```math
+\ell_{ij}=\log\!\left(1+\exp\!\left[m_t+s_\theta(x_j^-)-s_\theta(x_i^+)\right]\right)
+```
+
+```math
+\mathcal L_{\mathrm{tail}}
+=\frac{1}{N_+}\sum_{i=1}^{N_+}
+\min_{\eta_i}\left[\eta_i+\frac{1}{\beta N_-}\sum_{j=1}^{N_-}\max(0,\ell_{ij}-\eta_i)\right]
+```
+
+`N₊` and `N₋` are the numbers of positive and negative examples, `β` is the share of the hardest negative comparisons and `η_i` is the auxiliary CVaR threshold. The tail estimate needs a sufficiently large negative candidate pool.
+
+### Combined objective
+
+```math
+\mathcal L_{\mathrm{BCE}}=-\frac1N\sum_{i=1}^{N}\left[y_i\log p_\theta(x_i)+(1-y_i)\log(1-p_\theta(x_i))\right],
+\qquad p_\theta(x)=\sigma(s_\theta(x))
+```
+
+```math
+\mathcal L_{\mathrm{total}}=\mathcal L_{\mathrm{BCE}}+\lambda_c\,\mathcal L_{\mathrm{contrastive}}+\lambda_t\,\mathcal L_{\mathrm{tail}},
+\qquad \lambda_c,\lambda_t\ge 0
+```
+
+The weights `λ_c` and `λ_t` are selected on validation data. The individual objectives and their combination are compared under identical training and evaluation conditions.
+
+### Independent Neyman-Pearson threshold calibration
+
+```math
+\max_{\theta,\tau}\ \operatorname{TPR}(\theta,\tau)
+\quad\text{subject to}\quad
+\operatorname{FPR}(\theta,\tau)\le\alpha,
+\qquad \hat y(x)=\mathbf 1[s_\theta(x)>\tau]
+```
+
+1. Freeze the trained probe.
+2. Score independent, correctly labeled negative calibration examples and sort the scores `s₍₁₎⁻ ≤ … ≤ s₍ₙ₎⁻`.
+3. Set the threshold to an order statistic:
+
+```math
+\tau_\alpha=s_{(k)}^-,
+\qquad
+\sum_{j=k}^{n}\binom{n}{j}(1-\alpha)^j\alpha^{\,n-j}\le\delta
+```
+
+`δ` is the permitted probability that the true FPR exceeds `α` because of calibration-sample uncertainty, assuming independent calibration examples from a fixed, continuous negative-score distribution. If no `k ≤ n` satisfies the condition, the sample cannot certify the requested operating point with this rule.
+
+4. Freeze the threshold and evaluate on untouched test data.
+
 ## Study 1: Scripted false reports (Llama-3.2-3B-Instruct)
 
 **Design.** The model read 456 scripted conversations about an explicit verification record, and its internal states were measured while it read the final report. Each identifier group contained six matched cases: truthful success, fabricated success after failure, honest failure, fabricated verification without execution, honest non-execution, and honest discussion of an invalid success claim. Only the two fabricated claims were positive. The success report was identical in the truthful and fabricated cases, so only the surrounding verification record distinguished them.
@@ -138,11 +223,11 @@ Splits: 24 development, 192 training, 48 validation, and two held-out splits of 
 
 Full tables, figures and audit evidence: [results report](https://github.com/Fredo220/verified-reasoning-monitoring/blob/634df2cf3318561f267ef4b414ce8bf174dd25d0/docs/deception_monitoring/false_reporting_dom_v1/RESULTS.md).
 
-## Study 2: Belief-contradicting statements (2B and 9B)
+## Study 2: Belief-contradicting statements (Qwen3.5-2B and Qwen3.5-9B)
 
 ### Data
 
-An existing labeled corpus of 163,016 transcripts from 28 groups, with 81,508 examples in each class. The label applies to the last assistant answer. Conversation histories (honest or deceptive) are crossed with final answers (honest, or containing a statement believed to be false), so the history alone does not determine the label.
+The data are 129,776 responses from DolusChat, 64,888 honest and 64,888 deceptive, covering 64,888 scenarios. The label applies to the last assistant answer. Conversation histories (honest or deceptive) are crossed with final answers (honest, or containing a statement believed to be false), so the history alone does not determine the label.
 
 | Conversation history | Final answer | Label |
 |---|---|---:|
@@ -151,21 +236,26 @@ An existing labeled corpus of 163,016 transcripts from 28 groups, with 81,508 ex
 | Deceptive | Honest or corrective | 0 |
 | Deceptive | Contains a statement the model believes to be false | 1 |
 
-The training recipe uses 152,980 training rows and 5,000 validation rows. Variants of the same source prompt are kept in the same split, and length and message count were matched between the two classes. In the main comparison the 28 groups were not each held out as a whole; holding out whole groups is part of the planned protocol.
+The validation set contains 5,000 examples, of which 2,500 are positive and 2,500 are negative. Variants of the same source prompt are kept in the same split, and length and message count were matched between the two classes. Whole groups of scenarios were not held out in the main comparison; holding them out is part of the planned protocol.
 
-**Label quality.** An automated check by a language model estimates the label error rate at 0.74% (95% interval 0.57% to 0.99%). A human agreement rate is not yet available. Automated error analyses point to ambiguous rules for allocating donations and to legitimate changes of network protection rules. These concern the reference labels and are not automatically errors of the classifiers.
+**Label quality.** For DolusChat, an automated check by a language model estimates the label error rate at 0.74% (95% interval 0.57% to 0.99%). A human agreement rate is not yet available. Automated error analyses point to ambiguous rules for allocating donations and to legitimate changes of network protection rules. These concern the reference labels and are not automatically errors of the classifiers.
 
 ### Models
 
-The 2B and 9B models belong to the same model family. They differ in depth (24 versus 32 layers), hidden size (2,048 versus 4,096) and attention heads (8 versus 16). Separate readouts were trained for each model on activations from the six layers above.
+The 2B and 9B models are Qwen3.5 models. They differ in depth (24 versus 32 layers), hidden size (2,048 versus 4,096) and attention heads (8 versus 16). Identical pretraining is not established. Separate readouts were trained for each model on activations from the six layers above.
 
 ### Agentic evaluation
 
 Agentic steps were labeled from the first positive reference judgment onward: that step and all later steps in the episode are positive, and earlier steps and ordinary episodes are negative. An inconclusive judgment does not mark a start, and episodes without an identified start are excluded. Steps without a usable label were dropped: one step for 2B and two steps for 9B. A positive step label marks the position in the episode and does not mean that the individual action was confirmed as harmful.
 
+| Model | Episodes | Evaluated steps | Positive steps | Scenarios |
+|---|---:|---:|---:|---:|
+| Qwen3.5-2B | 273 | 8,416 | 1,053 | 14 |
+| Qwen3.5-9B | 665 | 19,455 | 4,541 | 14 |
+
 Recall is the share of flagged steps from the detected start of the side task onward. Validation evaluates final answers, while the agentic evaluation scores steps within longer tool-use sequences, so the two are reported separately.
 
-### Results
+### Results of the four-readout comparison
 
 | Metric | 2B | 9B |
 |---|---:|---:|
@@ -176,41 +266,62 @@ Recall is the share of flagged steps from the detected start of the side task on
 
 The agentic AUROC ranges summarize several readouts. At 5% FPR, the 9B model reaches 71.8% recall compared with 28.2% for the 2B model, and compared with the 1% FPR operating point recall rises by 14.2 and 25.6 percentage points, respectively, with more false alarms. Both models reach high AUROC on held-out examples from the training distribution. In the agentic setting, detection is weaker for the 2B model.
 
+### Results of the EFC probe with the improved methodology
+
+| Metric | Qwen3.5-2B | Qwen3.5-9B |
+|---|---:|---:|
+| Validation AUROC | 0.991 | 0.998 |
+| Agentic AUROC | at most 0.86 | about 0.95 |
+| Recall at 1% FPR | 23.8% | 53.2% |
+| Recall at 5% FPR | 32.4% | 76.6% |
+
+The EFC probe values were obtained with independently calibrated thresholds. The calibration values (`α`, `δ`, size of the calibration set) will be published with the replication data. The procedure is described under Improved methodology.
+
 ### Operating points and comparison scope
 
-- **Thresholds.** The agentic thresholds were set from negative steps in the agentic evaluation set, and recall was measured on the positive steps of the same set. The reported operating points describe this evaluation set. Calibrating on one split and measuring on another is the first step of the planned protocol.
-- **Model size.** The 2B and 9B comparison covers two models of one family that differ in depth, width and attention heads, and identical pretraining is not established. The comparison is reported as an observation about these two models.
+- **Thresholds.** The agentic thresholds of the four-readout comparison were set from negative steps in the agentic evaluation set, and recall was measured on the positive steps of the same set. The reported operating points describe this evaluation set, and the achieved FPR is 5.0% (rounded) for all four readouts at both model sizes. No separate threshold calibration exists for these agentic results. Calibrating on one split and measuring on another is the first step of the planned protocol.
+- **Model size.** The 2B and 9B comparison covers two Qwen3.5 models that differ in depth, width and attention heads, and identical pretraining is not established. The comparison is reported as an observation about these two models.
 - **Text judges.** The text-based judges in the reference evaluation do not see the agent's internal system instructions or internal reasoning, while the activations are produced under that context. A judge with access to the system instructions is part of the planned protocol.
 
 ### Evaluation status and next steps
 
 | Item | Status | Plan |
 |---|---|---|
-| Validation set composition and split manifest | In preparation | Release with run artifacts |
-| Agentic episodes, steps, positive steps, number of tasks | Being compiled | Report with the artifacts |
-| Confidence intervals for recall at 5% FPR | Not yet computed | Episode-level bootstrap |
-| Per-readout agentic AUROC and recall at 5% FPR | Not yet reported | Report for all four readouts |
-| Achieved FPR at the 5% target | Not yet reported | Report per readout |
-| Held-out threshold calibration | Not yet run | Split-half calibration, then fresh data |
-| Variation across training seeds | Seed 0 only | Multiple seeds |
-| Different choice of the six layers in the agentic evaluation | Not yet run | Repeat agentic evaluation |
-| Random-weight and shuffled-label controls | Not yet run | Add to the protocol |
-| Baselines using length, position or topic group alone | Not yet run | Add to the protocol |
-| Text judge with access to system instructions | Not yet run | Information-matched comparison |
-| Alerts per ordinary episode; time to first alert | Not yet reported | Compute from step scores |
-| Per-task recall and FPR | Not yet published | Report with artifacts |
-| Human label check | Not yet run | Sample-based agreement check |
-| Adaptive evasion against the classifiers | Not yet tested | Add as a separate evaluation |
+| Validation set composition | 5,000 examples, 2,500 positive and 2,500 negative; a manifest with per-example assignments is not established | Release a split manifest with the run artifacts |
+| Agentic sample sizes | Reported above: 2B with 273 episodes, 8,416 steps and 1,053 positive; 9B with 665 episodes, 19,455 steps and 4,541 positive; 14 scenarios each | Keep with the artifacts |
+| Confidence intervals for recall at 5% FPR | Not reported for the two recall values; bootstrap intervals exist for other metrics, and it is unknown whether the missing ones were computed internally | Episode-level bootstrap |
+| Per-readout results | Agentic AUROC is shown in figures and recall at 5% FPR is tabulated; exact AUROC values are not consistently tabulated | Tabulate exact values for all four readouts |
+| Achieved FPR at the 5% target | 5.0% (rounded) for all four readouts at both model sizes | Report unrounded values |
+| Held-out threshold calibration | No separate calibration for the four-readout agentic results; the EFC probe values use independently calibrated thresholds, with calibration values to be published with the replication data | Split-half calibration for the four-readout comparison, then fresh data |
+| Variation across training seeds | Seed 0 only; no documented variation | Multiple seeds |
+| Different choice of the six layers in the agentic evaluation | No results documented | Repeat agentic evaluation |
+| Random-weight and shuffled-label controls | No results documented | Add to the protocol |
+| Baselines using length, position or topic group alone | No results documented | Add to the protocol |
+| Text judge with access to system instructions | No results documented | Information-matched comparison |
+| Alerts per ordinary episode; time to first alert | No documented classifier alerts per ordinary episode or delays to first alert | Compute from step scores |
+| Per-task recall and FPR | No full breakdown per task | Report with artifacts |
+| Human label check | No results documented | Sample-based agreement check |
+| Adaptive evasion against the classifiers | No results documented | Add as a separate evaluation |
+
+"No results documented" means that no corresponding result is part of the available record. It does not imply that the analysis was never run.
 
 Further data are being collected, and this table will be updated.
 
 ## Study 3: Larger models
 
-The same procedure was applied to models with 27, 122 and 397 billion total parameters from the same family. Preliminary evaluations suggest better detection than for the smaller models. Exact recall and AUROC values, readout-level results and run conditions will be added with the 2B/9B items above, together with a check that data, layer selection and threshold procedure match across sizes.
+The same procedure is being applied to the following larger models:
+
+| Model | Parameters |
+|---|---|
+| Gemma 2 27B | 27B |
+| gpt-oss 120B | 117B total, 5.1B active |
+| Llama 4 Maverick 400B | 400B total, 17B active |
+
+Results are pending. The models come from different families, so differences to the 2B and 9B results combine model size with family and architecture. Data, layer selection and threshold procedure will be matched across models and reported with the 2B/9B items above.
 
 ## Planned evaluation protocol
 
-1. **Held-out threshold calibration.** Choose the 5% FPR threshold on one half of the episodes and measure recall and achieved FPR on the other half. A post-hoc split is a robustness check, and a new pre-specified test uses fresh data.
+1. **Held-out threshold calibration.** Choose the 5% FPR threshold on independent calibration data with the order-statistic rule above, or on one half of the episodes, and measure recall and achieved FPR on the other half. A post-hoc split is a robustness check, and a new pre-specified test uses fresh data.
 2. **Bootstrap intervals.** Resample whole episodes with replacement and report intervals for recall at 5% FPR and for AUROC.
 3. **Alerts per episode.** Report the mean number of alerts per ordinary episode and the share of ordinary episodes with at least one alert.
 4. **Text judge with equal information.** Use the same transcripts and scoring times, with the system instructions available to the judge, to test whether an advantage of internal activations remains when information access is matched.
