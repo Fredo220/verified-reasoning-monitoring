@@ -7,7 +7,7 @@ This project tests whether the internal activations of a language model carry a 
 - **A pre-specified comparison of 18 readout variants** on false task-completion reports, with cutoffs frozen before held-out scoring, every variant reported, and independent replay of the trained heads.
 - **A separation of ranking from detection.** The comparison shows that a score can rank held-out examples perfectly (AUROC 1.00) and still miss every positive at a frozen cutoff, so AUROC alone is not used as the success criterion.
 - **A four-readout comparison on Qwen3.5-2B and Qwen3.5-9B**, on validation data and on agentic side-task steps, reported at fixed false positive rates.
-- **An improved training and calibration method:** context-contrastive learning, a partial-AUC/CVaR tail loss for low-FPR operation, and independent Neyman-Pearson threshold calibration.
+- **A context-contrastive probe:** trained with context-contrastive learning and a partial-AUC/CVaR tail loss for low-FPR operation, and evaluated with independent Neyman-Pearson threshold calibration.
 - **A planned investigation of larger models** (Gemma 2 27B, gpt-oss 120B, Llama 4 Maverick 400B).
 - **A stated evaluation protocol** for the next stage: held-out threshold calibration, episode-level uncertainty, alerts per episode, and an information-matched text-judge baseline.
 
@@ -113,9 +113,11 @@ A higher `D` means the denial is more inconsistent with the model's internal sta
 
 At 5% FPR, about five of every hundred negative steps are flagged. The overall alert rate also depends on the share of positive steps and on recall. The 5% operating point reflects a preference for higher recall, with a higher cost assigned to missed positive steps than to extra alarms.
 
-## Improved methodology
+### Training and calibration of the context-contrastive probe
 
-### Context-contrastive learning
+The context-contrastive probe evaluated in Study 2 is trained with the objectives below and evaluated with independently calibrated thresholds.
+
+#### Context-contrastive learning
 
 For each context `C`, matched examples are built from a knowing falsehood and a truthful statement:
 
@@ -141,7 +143,7 @@ Context-controlled pairs use the same statement under opposing contexts:
 
 The loss compares both responses within each context and the same response across opposing contexts.
 
-### Partial-AUC and CVaR optimization
+#### Partial-AUC and CVaR optimization
 
 ```math
 \operatorname{pAUC}_{\alpha}=\frac{1}{\alpha}\int_0^\alpha \operatorname{TPR}(u)\,du,
@@ -160,7 +162,7 @@ The loss compares both responses within each context and the same response acros
 
 `N₊` and `N₋` are the numbers of positive and negative examples, `β` is the share of the hardest negative comparisons and `η_i` is the auxiliary CVaR threshold. The tail estimate needs a sufficiently large negative candidate pool.
 
-### Combined objective
+#### Combined objective
 
 ```math
 \mathcal L_{\mathrm{BCE}}=-\frac1N\sum_{i=1}^{N}\left[y_i\log p_\theta(x_i)+(1-y_i)\log(1-p_\theta(x_i))\right],
@@ -174,7 +176,7 @@ The loss compares both responses within each context and the same response acros
 
 The weights `λ_c` and `λ_t` are selected on validation data. The individual objectives and their combination are compared under identical training and evaluation conditions.
 
-### Independent Neyman-Pearson threshold calibration
+#### Independent Neyman-Pearson threshold calibration
 
 ```math
 \max_{\theta,\tau}\ \operatorname{TPR}(\theta,\tau)
@@ -266,7 +268,7 @@ Recall is the share of flagged steps from the detected start of the side task on
 
 The agentic AUROC ranges summarize several readouts. At 5% FPR, the 9B model reaches 71.8% recall compared with 28.2% for the 2B model, and compared with the 1% FPR operating point recall rises by 14.2 and 25.6 percentage points, respectively, with more false alarms. Both models reach high AUROC on held-out examples from the training distribution. In the agentic setting, detection is weaker for the 2B model.
 
-### Results of the EFC probe with the improved methodology
+### Results of the context-contrastive probe
 
 | Metric | Qwen3.5-2B | Qwen3.5-9B |
 |---|---:|---:|
@@ -275,7 +277,7 @@ The agentic AUROC ranges summarize several readouts. At 5% FPR, the 9B model rea
 | Recall at 1% FPR | 23.8% | 53.2% |
 | Recall at 5% FPR | 32.4% | 76.6% |
 
-The EFC probe values were obtained with independently calibrated thresholds. The calibration values (`α`, `δ`, size of the calibration set) will be published with the replication data. The procedure is described under Improved methodology.
+The values of the context-contrastive probe were obtained with independently calibrated thresholds. The calibration values (`α`, `δ`, size of the calibration set) will be published with the replication data. The procedure is described under Method, in Training and calibration of the context-contrastive probe.
 
 ### Operating points and comparison scope
 
@@ -292,7 +294,7 @@ The EFC probe values were obtained with independently calibrated thresholds. The
 | Confidence intervals for recall at 5% FPR | Not reported for the two recall values; bootstrap intervals exist for other metrics, and it is unknown whether the missing ones were computed internally | Episode-level bootstrap |
 | Per-readout results | Agentic AUROC is shown in figures and recall at 5% FPR is tabulated; exact AUROC values are not consistently tabulated | Tabulate exact values for all four readouts |
 | Achieved FPR at the 5% target | 5.0% (rounded) for all four readouts at both model sizes | Report unrounded values |
-| Held-out threshold calibration | No separate calibration for the four-readout agentic results; the EFC probe values use independently calibrated thresholds, with calibration values to be published with the replication data | Split-half calibration for the four-readout comparison, then fresh data |
+| Held-out threshold calibration | No separate calibration for the four-readout agentic results; the values of the context-contrastive probe use independently calibrated thresholds, with calibration values to be published with the replication data | Split-half calibration for the four-readout comparison, then fresh data |
 | Variation across training seeds | Seed 0 only; no documented variation | Multiple seeds |
 | Different choice of the six layers in the agentic evaluation | No results documented | Repeat agentic evaluation |
 | Random-weight and shuffled-label controls | No results documented | Add to the protocol |
