@@ -34,7 +34,7 @@ Can classifiers trained on the activations of a frozen language model detect tha
 A final assistant answer `r` in context `C` is labeled positive if it contains at least one asserted statement `s` that the model believes to be false:
 
 ```math
-y_M(C,r)=\mathbf 1\!\left[\exists s\in\mathcal S(r):\operatorname{Bel}_M(\neg s\mid C)\right].
+y_M(C,r)=\mathbf 1\!\left[\exists s\in\mathcal S(r):\mathrm{Bel}_M(\neg s\mid C)\right].
 ```
 
 The label is defined by consistency with the model's own belief, not by objective truth. A factual mistake is therefore not automatically positive, and a statement that is objectively true can be positive if the model believes it to be false. Literally true but misleading statements and deception by omission are outside this definition.
@@ -146,7 +146,7 @@ The loss compares both responses within each context and the same response acros
 #### Partial-AUC and CVaR optimization
 
 ```math
-\operatorname{pAUC}_{\alpha}=\frac{1}{\alpha}\int_0^\alpha \operatorname{TPR}(u)\,du,
+\mathrm{pAUC}_{\alpha}=\frac{1}{\alpha}\int_0^\alpha \mathrm{TPR}(u)\,du,
 \qquad \alpha\in\{0.01,\;0.05\}
 ```
 
@@ -179,9 +179,9 @@ The weights `λ_c` and `λ_t` are selected on validation data. The individual ob
 #### Independent Neyman-Pearson threshold calibration
 
 ```math
-\max_{\theta,\tau}\ \operatorname{TPR}(\theta,\tau)
+\max_{\theta,\tau}\ \mathrm{TPR}(\theta,\tau)
 \quad\text{subject to}\quad
-\operatorname{FPR}(\theta,\tau)\le\alpha,
+\mathrm{FPR}(\theta,\tau)\le\alpha,
 \qquad \hat y(x)=\mathbf 1[s_\theta(x)>\tau]
 ```
 
