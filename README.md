@@ -2,6 +2,51 @@
 
 This project tests whether the internal activations of a language model carry a signal that separates two kinds of final answers: answers that contain a statement the model believes to be false, and answers that do not. A small classifier (a "readout") is trained on the activations of a frozen base model and then evaluated on held-out data, including agentic episodes with hidden side tasks.
 
+## In plain terms
+
+**The idea.** When a language model writes an answer, it computes millions of internal numbers along the way. This project asks whether those internal numbers show that the model is stating something it "knows" to be false, even when the text itself looks normal. If they do, a small and cheap detector could read them and raise an alarm.
+
+**An example.** An agent is told to fix a bug. The fix fails, but the agent reports: "The tests pass." A reader who sees only the report cannot tell that it is false. The model, however, has seen the failed test run. The question is whether that mismatch is visible in its internal state.
+
+**How it is tested.**
+1. A language model is kept unchanged ("frozen").
+2. While it reads or writes an answer, its internal values are recorded at six depths of the network.
+3. A small detector (a "probe" or "readout") is trained on many examples labeled as honest or as containing a statement the model believes to be false.
+4. The detector is then tested on examples it has never seen, including multi-step agent tasks in which the agent secretly pursues a side task.
+
+**What counts as false here.** The label follows the model's own belief, not the objective truth. If the model honestly believes something wrong, that is a mistake, not a positive case. If the model states something it believes to be false, it is a positive case.
+
+**How success is measured.** Two numbers are reported, and they answer different questions:
+- **AUROC** asks: if one honest and one false answer are picked at random, how often does the detector give the false one the higher score? 1.0 is perfect, 0.5 is guessing.
+- **Recall at a fixed false alarm rate** asks: if the detector may wrongly flag only 5 of every 100 honest steps, what share of the false ones does it catch?
+
+A detector can sort examples well (high AUROC) and still miss cases once a fixed alarm threshold is in place. Study 1 shows this directly: one score sorted the examples perfectly but caught none of the false reports at its frozen threshold. For this reason the second number is the main criterion.
+
+**What has been found so far.**
+- In a controlled setting with scripted reports (Study 1), the pre-specified detector caught all 32 false reports and raised no false alarms on 64 honest ones, on both test sets. In this setting a simple text check reached the same result, so it mainly confirms that the method works where the answer is known.
+- On a large set of honest and deceptive answers (Study 2), the detectors separate the two groups almost perfectly on data similar to the training data.
+- In multi-step agent tasks, detection is weaker. With 5 false alarms per 100 honest steps, the detector catches about three in four positive steps for the larger 9B model (76.6%) and about one in three for the smaller 2B model (32.4%).
+- Results for larger models are pending.
+
+**What this does not show yet.** The results come from specific models, data and settings. Several checks are still open, including uncertainty ranges, repeated training runs, human label checks, a fair comparison with text-based judges that see the same information, and tests against models that try to evade detection. A signal that can be read out also does not explain *why* the model produces it. The section [Evaluation status and next steps](#evaluation-status-and-next-steps) lists these points.
+
+### Glossary
+
+| Term | Meaning |
+|---|---|
+| Activations | The internal numbers a model computes while processing text |
+| Layer | One processing stage of the model; activations are read at six of them |
+| Frozen model | The model itself is not changed; only the small detector is trained |
+| Probe / readout | A small detector trained on the activations |
+| Statistical window readout | A detector that summarizes activations over a span of text by their average and how they vary together |
+| Context-contrastive probe | A detector trained to compare the same kind of answer in different contexts, so it learns when a statement contradicts what the model knows rather than how the statement is worded |
+| Agentic setting | The model acts as an agent over many steps and uses tools |
+| Hidden side task | A secret goal the agent pursues in addition to the visible task |
+| False positive rate (FPR) | Share of honest cases wrongly flagged |
+| Recall | Share of positive cases that are caught |
+| Threshold calibration | Choosing the alarm threshold on separate data, so that the false alarm rate is controlled before testing |
+| Held-out data | Examples not used in training, used only for testing |
+
 ## Contributions
 
 - **A pre-specified comparison of 18 readout variants** on false task-completion reports, with cutoffs frozen before held-out scoring, every variant reported, and independent replay of the trained heads.
@@ -320,6 +365,117 @@ The same procedure is being applied to the following larger models:
 | Llama 4 Maverick 400B | 400B total, 17B active |
 
 Results are pending. The models come from different families, so differences to the 2B and 9B results combine model size with family and architecture. Data, layer selection and threshold procedure will be matched across models and reported with the 2B/9B items above.
+
+## Ongoing improvements: extending the readout
+
+### Why extend the readout?
+
+**In short.** The current detector works well at sorting honest from false answers, but in multi-step agent tasks it still misses many positive steps once the false alarm rate is fixed. The next step tests whether giving the detector additional kinds of internal information helps it catch more of them without raising more false alarms.
+
+**Starting point.** The studies above indicate that, under the tested conditions, internal activations carry a signal that separates answers containing a statement the model believes to be false from other answers. They also show that sorting well and detecting well are different things. In Study 1, a score with AUROC 1.00 flagged 0/32 at its frozen cutoff. In Study 2, the context-contrastive probe reaches a validation AUROC of 0.991 (2B) and 0.998 (9B), while recall at 5% FPR in the agentic setting is 32.4% and 76.6%.
+
+**The current detector.** The context-contrastive probe is built on the statistical window readout. It looks at a span of text and summarizes the internal values in two ways: their average (what is typically active) and their covariance (which values rise and fall together):
+
+```math
+s_{\mathrm{win}}(x)=f_\theta\!\left(\mu(x),\,\widetilde{\Sigma}(x)^{1/2}\right)
+```
+
+`μ(x)` are the projected mean features and `Σ̃(x)` is the shrunk covariance described under Readouts. Training combines BCE with the context-contrastive and tail losses, and thresholds are set with the independent Neyman-Pearson calibration.
+
+**The question.** Can additional kinds of internal information improve detection at low false alarm rates beyond what this summary already captures? Three extensions are planned. None of them has been evaluated yet.
+
+### Extension 1: Local token scores
+
+**In short.** An average over a whole answer can hide a short false statement inside an otherwise honest answer, much as one wrong sentence disappears in the average of a long paragraph. This extension also scores each word piece (token) separately and pays extra attention to the highest scores.
+
+**Details.** Each token gets a simple linear score, and the scores are combined in a way that lies between "take the average" and "take the maximum":
+
+```math
+q_t=w_{\mathrm{tok}}^\top h_t+b,
+\qquad
+g_{\mathrm{tok}}(x)=\rho\log\!\left(\frac1T\sum_{t=1}^{T}\exp\!\left(\bar q_t/\rho\right)\right)
+```
+
+`h_t` is the activation at token `t`, `q̄_t` is the locally smoothed score, `T` is the number of tokens in the window and `ρ > 0` sets how strongly high-scoring positions count. A small `ρ` approaches the maximum over tokens and a large `ρ` approaches the mean. The extension adds to the statistical window readout and does not replace it, so it differs from the token-layer readout above.
+
+**Open point.** Labels say whether a whole answer is positive, not which token is responsible. Study 1 showed the risk: taking the maximum over tokens flagged 48/64 honest reports for two heads, while taking the mean flagged none, and window smoothing did not consistently help. `ρ` and the smoothing are therefore chosen on validation data, and false alarms on honest answers are reported separately.
+
+### Extension 2: Sparse MLP neuron features
+
+**In short.** So far the detector reads the model's main information stream (the residual stream). Inside each layer there are also individual units, called neurons, in the MLP block. This extension checks whether a small number of these neurons carries useful evidence, and lets the training decide which few to keep.
+
+**Details.** For each neuron `j`, its activity over the text span is summarized by its average, its spread and its peak:
+
+```math
+v_j(x)=\begin{bmatrix}\mathrm{mean}_t(a_{j,t})\\ \mathrm{std}_t(a_{j,t})\\ \mathrm{max}_t(a_{j,t})\end{bmatrix},
+\qquad
+s_{\mathrm{MLP}}(x)=\sum_{j\in S}w_j^\top v_j(x)
+```
+
+The activations `a_{j,t}` are read before the MLP down-projection. A group penalty (group lasso) treats the three weights of one neuron as a unit and pushes unhelpful neurons to zero as a whole, so that only a few neurons remain in use:
+
+```math
+\mathcal R_{\mathrm{group}}=\lambda_G\sum_{j\in S}\lVert w_j\rVert_2
+```
+
+**Open point.** Using few neurons does not by itself mean that the detector generalizes or that those neurons explain the behavior. Neuron selection and feature normalization are fit on training data only, and evaluation uses held-out scenario groups.
+
+### Extension 3: Combined probe
+
+**In short.** The combined probe adds the two new sources of evidence to the current detector. If the new parts turn out not to help, training can set them to zero, and the combined probe is then the same as the current one.
+
+```math
+s_{\mathrm{comb}}(x)=s_{\mathrm{win}}(x)+\gamma\,g_{\mathrm{tok}}(x)+s_{\mathrm{MLP}}(x)
+```
+
+| Component | What it looks at | What it may add |
+|---|---|---|
+| Statistical window readout | Average and covariance over the text span | Overall patterns across tokens and features |
+| Local token scores | Scores at individual tokens | Short, localized false statements |
+| Sparse MLP features | A few selected neurons | Compact features that are easier to inspect |
+| Combined probe | All three | Evidence that the parts do not capture alone |
+
+With `γ = 0` and `w_j = 0` for all neurons, the combined probe reduces to the statistical window readout. Training keeps the existing objective and adds the group penalty:
+
+```math
+\mathcal L_{\mathrm{comb}}=\mathcal L_{\mathrm{BCE}}+\lambda_c\mathcal L_{\mathrm{contrastive}}+\lambda_t\mathcal L_{\mathrm{tail}}+\lambda_G\sum_{j\in S}\lVert w_j\rVert_2
+```
+
+All loss terms use the combined score. The weights `γ`, `λ_c`, `λ_t` and `λ_G` are selected on validation data.
+
+### Planned comparison
+
+**In short.** Each extension is tested on its own and in combination, under identical conditions, to see which part actually helps on new data and which only fits the training data better.
+
+Four configurations will be compared:
+
+1. Context-contrastive probe (statistical window readout, baseline)
+2. With local token scores
+3. With sparse MLP features
+4. Combined probe
+
+The goal stays the same: catch as many positive cases as possible while keeping false alarms at or below a chosen rate `α`:
+
+```math
+\max_{\theta,\tau}\ \mathrm{TPR}(\theta,\tau)
+\quad\text{subject to}\quad
+\mathrm{FPR}(\theta,\tau)\le\alpha,
+\qquad \alpha\in\{0.01,\ 0.05\}
+```
+
+The comparison reports:
+
+- **Detection at low false alarm rates:** recall at 1% and 5% FPR with independently calibrated thresholds.
+- **Generalization:** results on held-out scenario groups and task types.
+- **Complementarity:** whether the extensions catch cases that the baseline misses.
+- **Regularization:** how the group penalty affects which neurons are selected, stability across training seeds, and generalization.
+- **Cost:** detection relative to the additional computation.
+
+Ablations, in which one component is removed at a time, separate the contribution of each part. Data, layers, splits and the threshold rule are held fixed across configurations, and the comparison follows the planned evaluation protocol below.
+
+### Status
+
+The results of Studies 1 and 2 are the baseline for this comparison. The three extensions are proposed and not yet evaluated, and no results are reported for them. The aim is to find the smallest combination of internal features that improves detection at a controlled false alarm rate on new data.
 
 ## Planned evaluation protocol
 
