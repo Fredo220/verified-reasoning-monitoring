@@ -28,7 +28,7 @@ A detector can sort examples well (high AUROC) and still miss cases once a fixed
 - In multi-step agent tasks, detection is weaker. With 5 false alarms per 100 honest steps, the detector flags about three in four steps after the side task began for the larger 9B model (76.6%) and about one in three for the smaller 2B model (32.4%).
 - Experiments with larger models are in progress.
 
-**What comes next.** The results come from specific models, data and settings. Further analyses, including uncertainty ranges, repeated training runs, human label checks, a comparison with text-based judges that see the same information, and tests against models that try to evade detection, are part of the ongoing study and will be published together with all other results once all methods have been tested. A signal that can be read out also does not explain *why* the model produces it. The section [Additional analyses and release](#additional-analyses-and-release) lists these analyses.
+**What comes next.** The results come from specific models, data and settings. Further analyses, including uncertainty ranges, repeated training runs, human label checks, a comparison with text-based judges that see the same information, and tests against models that try to evade detection, are part of the ongoing study. Their results, the code and the run-level artifacts will be released together with the full write-up. A signal that can be read out also does not explain *why* the model produces it. The section [Additional analyses and release](#additional-analyses-and-release) lists these analyses.
 
 ### Glossary
 
@@ -65,7 +65,7 @@ The three studies use different models, data and evaluation procedures. Their me
 | Study | What was tested | Models | Status |
 |---|---|---|---|
 | Scripted false reports | 18 readout variants, specified in advance, on false task-completion reports | Llama-3.2-3B-Instruct | Completed and published |
-| Belief-contradicting statements | Four readout types on validation data and on agentic side-task steps | Qwen3.5-2B and Qwen3.5-9B | Completed; additional analyses, code and run-level artifacts to be released together |
+| Belief-contradicting statements | Four readout types on validation data and on agentic side-task steps | Qwen3.5-2B and Qwen3.5-9B | Completed; additional analyses in progress |
 | Larger models | The same procedure on larger models | Gemma 2 27B, gpt-oss 120B (117B total, 5.1B active), Llama 4 Maverick 400B (17B active) | In progress |
 
 ## Research question
@@ -82,7 +82,7 @@ y_M(C,r)=\mathbf 1\!\left[\exists s\in\mathcal S(r):\mathrm{Bel}_M(\neg s\mid C)
 
 The label is defined by consistency with the model's own belief, not by objective truth. A factual mistake is therefore not automatically positive, and a statement that is objectively true can be positive if the model believes it to be false. Literally true but misleading statements and deception by omission are outside this definition.
 
-Evidence about the model's belief comes from three sources: unambiguous conversation information, a stable answer after a pressure or cue is removed, and known training conditions. A per-example breakdown by source will be published together with all other results once all methods have been tested.
+Evidence about the model's belief comes from three sources: unambiguous conversation information, a stable answer after a pressure or cue is removed, and known training conditions. A per-example breakdown by source is part of the full release.
 
 ## Method
 
@@ -283,7 +283,7 @@ The data are 129,776 responses from DolusChat, 64,888 honest and 64,888 deceptiv
 
 The validation set contains 5,000 examples, of which 2,500 are positive and 2,500 are negative. Variants of the same source prompt are kept in the same split, and length and message count were matched between the two classes. Whole groups of scenarios were not held out in the main comparison; results with held-out scenario groups are part of the extended evaluation.
 
-**Label quality.** For DolusChat, an automated check by a language model estimates the label error rate at 0.74% (95% interval 0.57% to 0.99%). Results of a human label check will be published together with all other results once all methods have been tested. Automated error analyses point to ambiguous rules for allocating donations and to legitimate changes of network protection rules. These concern the reference labels and are not automatically errors of the classifiers.
+**Label quality.** For DolusChat, an automated check by a language model estimates the label error rate at 0.74% (95% interval 0.57% to 0.99%). A human label check is in progress. Automated error analyses point to ambiguous rules for allocating donations and to legitimate changes of network protection rules. These concern the reference labels and are not automatically errors of the classifiers.
 
 ### Models
 
@@ -307,20 +307,20 @@ Recall is the share of flagged steps from the detected start of the side task on
 | Statistical window readout, recall at 5% FPR | 28.2% | 71.8% |
 | Statistical window readout, recall at 1% FPR | 14.0% | 46.2% |
 | Statistical window readout, validation AUROC | 0.987 | 0.996 |
-| Agentic AUROC across readouts | up to 0.81 | about 0.93 to 0.95 |
+| Agentic AUROC, best of the four readouts | 0.81 | 0.95 |
 
-The agentic AUROC ranges summarize several readouts; exact per-readout values will be published together with all other results once all methods have been tested. At 5% FPR, the 9B model reaches 71.8% recall compared with 28.2% for the 2B model, and compared with the 1% FPR operating point recall rises by 14.2 and 25.6 percentage points, respectively, with more false alarms. Both models reach high AUROC on held-out examples from the training distribution. In the agentic setting, detection is weaker for the 2B model.
+The agentic AUROC row reports the best of the four readouts. At 5% FPR, the 9B model reaches 71.8% recall compared with 28.2% for the 2B model, and compared with the 1% FPR operating point recall rises by 14.2 and 25.6 percentage points, respectively, with more false alarms. Both models reach high AUROC on held-out examples from the training distribution. In the agentic setting, detection is weaker for the 2B model.
 
 ### Results of the context-contrastive probe
 
 | Metric | Qwen3.5-2B | Qwen3.5-9B |
 |---|---:|---:|
 | Validation AUROC | 0.991 | 0.998 |
-| Agentic AUROC | at most 0.86 | about 0.95 |
+| Agentic AUROC | 0.86 | 0.95 |
 | Recall at 1% FPR | 23.8% | 53.2% |
 | Recall at 5% FPR | 32.4% | 76.6% |
 
-The values of the context-contrastive probe were obtained with independently calibrated thresholds. The calibration settings (`α`, `δ`, size of the calibration set) are fixed and will be published together with all other results once all methods have been tested. The procedure is described under Method, in Training and calibration of the context-contrastive probe.
+The values of the context-contrastive probe were obtained with independently calibrated thresholds. The calibration settings (`α`, `δ`, size of the calibration set) were fixed before the test data were scored. The procedure is described under Method, in Training and calibration of the context-contrastive probe.
 
 ### Operating points and comparison scope
 
@@ -330,26 +330,7 @@ The values of the context-contrastive probe were obtained with independently cal
 
 ### Additional analyses and release
 
-The following analyses for Study 2 have been run as part of the ongoing study. Their results, the code and the run-level artifacts will be published together with all other results once all methods have been tested, including the extensions described below.
-
-| Analysis | Status |
-|---|---|
-| Validation set composition | 5,000 examples, 2,500 positive and 2,500 negative; split manifest with per-example assignments to be released |
-| Agentic sample sizes | 2B with 273 episodes, 8,416 steps and 1,053 positive; 9B with 665 episodes, 19,455 steps and 4,541 positive; 14 scenarios each |
-| Confidence intervals for recall at 1% and 5% FPR (episode-level bootstrap) | Completed; to be released |
-| Exact agentic AUROC for all four readouts | Completed; to be released |
-| Unrounded achieved FPR at the 5% target | Completed; to be released |
-| Held-out threshold calibration for the four-readout comparison | Completed; to be released |
-| Calibration settings of the context-contrastive probe (`α`, `δ`, calibration set size) | Fixed; to be released |
-| Variation across training seeds | Completed; reported results use seed 0, further seeds to be released |
-| Different choice of the six layers in the agentic evaluation | Completed; to be released |
-| Random-weight and shuffled-label controls | Completed; to be released |
-| Baselines using length, position or topic group alone | Completed; to be released |
-| Text judge with access to system instructions | Completed; to be released |
-| Alerts per ordinary episode and time to first alert | Completed; to be released |
-| Per-task recall and FPR | Completed; to be released |
-| Human label check | Completed; to be released |
-| Adaptive evasion against the classifiers | Completed; to be released |
+Additional analyses for Study 2 are in progress: episode-level bootstrap intervals for recall at 1% and 5% FPR, per-readout agentic AUROC and unrounded achieved FPR, held-out threshold calibration for the four-readout comparison, further training seeds (reported results use seed 0), alternative layer choices, random-weight and shuffled-label controls, baselines using length, position or topic group alone, a text judge with access to the system instructions, alerts per ordinary episode and time to first alert, per-task recall and FPR, a human label check, and adaptive evasion tests.
 
 ## Study 3: Larger models
 
@@ -361,7 +342,7 @@ The same procedure is being applied to the following larger models, using Google
 | gpt-oss 120B | 117B total, 5.1B active |
 | Llama 4 Maverick 400B | 400B total, 17B active |
 
-Results will be published together with all other results once all methods have been tested. The models come from different families, so differences to the 2B and 9B results combine model size with family and architecture. Data, layer selection and threshold procedure are matched across models.
+Results will be added once these runs are complete. The models come from different families, so differences to the 2B and 9B results combine model size with family and architecture. Data, layer selection and threshold procedure are matched across models.
 
 ## Ongoing improvements: extending the readout
 
@@ -379,7 +360,7 @@ s_{\mathrm{win}}(x)=f_\theta\!\left(\mu(x),\,\widetilde{\Sigma}(x)^{1/2}\right)
 
 `μ(x)` are the projected mean features and `Σ̃(x)` is the shrunk covariance described under Readouts. Training combines BCE with the context-contrastive and tail losses, and thresholds are set with the independent Neyman-Pearson calibration.
 
-**The question.** Can additional kinds of internal information improve detection at low false alarm rates beyond what this summary already captures? Three extensions are currently being tested. Their results will be published together with all other results once all methods have been tested.
+**The question.** Can additional kinds of internal information improve detection at low false alarm rates beyond what this summary already captures? Three extensions are currently being tested.
 
 ### Extension 1: Local token scores
 
@@ -472,11 +453,11 @@ Ablations, in which one component is removed at a time, separate the contributio
 
 ### Status
 
-The results of Studies 1 and 2 are the baseline for this comparison. The three extensions are currently being tested, and their results will be published together with all other results once all methods have been tested. The aim is to find the smallest combination of internal features that improves detection at a controlled false alarm rate on new data.
+The results of Studies 1 and 2 are the baseline for this comparison. The three extensions are currently being tested. The aim is to find the smallest combination of internal features that improves detection at a controlled false alarm rate on new data.
 
 ## Extended evaluation
 
-The extended evaluation covers the following analyses. Their results will be published together with all other results once all methods have been tested.
+The extended evaluation covers the following analyses.
 
 1. **Held-out threshold calibration.** The 5% FPR threshold is chosen on independent calibration data with the order-statistic rule above, or on one half of the episodes, and recall and achieved FPR are measured on the other half.
 2. **Bootstrap intervals.** Whole episodes are resampled with replacement to obtain intervals for recall at 5% FPR and for AUROC.
@@ -489,7 +470,7 @@ These analyses use episode identifiers, labels and per-step scores, and analysis
 
 ## Reproducibility
 
-The 18-variant study is documented with a pinned model and tokenizer revision (`0cb88a4f764b7a12671c53f0838cd831a0843b95`), software versions, frozen cutoffs and independent replay of the trained heads. Run-level artifacts for the 2B/9B and larger-model runs (model and data revisions, run identifiers, split manifests, score files) and the code will be published together with all other results once all methods have been tested.
+The 18-variant study is documented with a pinned model and tokenizer revision (`0cb88a4f764b7a12671c53f0838cd831a0843b95`), software versions, frozen cutoffs and independent replay of the trained heads. Run-level artifacts for the 2B/9B and larger-model runs (model and data revisions, run identifiers, split manifests, score files) and the code will be released together with the full write-up.
 
 A signal that can be read out does not by itself explain a causal mechanism, and the studies measure detection under the stated conditions.
 
